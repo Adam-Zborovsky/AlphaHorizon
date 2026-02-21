@@ -59,6 +59,13 @@ class _NexusHeader extends StatelessWidget {
           style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
+      actions: [
+        IconButton(
+          onPressed: () => context.push('/manage-watchlist'),
+          icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.goldAmber),
+        ),
+        const SizedBox(width: 10),
+      ],
     );
   }
 }

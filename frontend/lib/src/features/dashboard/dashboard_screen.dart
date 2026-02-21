@@ -127,6 +127,14 @@ class _DailyBriefingSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (briefing.data.isEmpty) {
+      return const GlassCard(
+        child: Center(
+          child: Text('No intelligence available for this period.', style: TextStyle(color: Colors.white24)),
+        ),
+      );
+    }
+
     final summary = briefing.data.values.first.summary;
     final score = briefing.data.values.first.sentimentScore;
 

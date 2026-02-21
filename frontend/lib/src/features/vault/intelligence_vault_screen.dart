@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/glass_card.dart';
 import '../briefing/briefing_repository.dart';
@@ -58,6 +59,13 @@ class _VaultHeader extends StatelessWidget {
           style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
+      actions: [
+        IconButton(
+          onPressed: () => context.push('/manage-topics'),
+          icon: const Icon(Icons.search_rounded, color: AppTheme.goldAmber),
+        ),
+        const SizedBox(width: 10),
+      ],
     );
   }
 }

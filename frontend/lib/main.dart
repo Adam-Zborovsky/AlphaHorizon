@@ -7,6 +7,8 @@ import 'src/features/nexus/market_nexus_screen.dart';
 import 'src/features/vault/intelligence_vault_screen.dart';
 import 'src/features/scanner/alpha_scanner_screen.dart';
 import 'src/features/stock/stock_detail_screen.dart';
+import 'src/features/nexus/management/manage_watchlist_screen.dart';
+import 'src/features/vault/management/manage_topics_screen.dart';
 import 'src/core/widgets/glass_card.dart';
 
 void main() {
@@ -47,6 +49,16 @@ final _router = GoRouter(
           builder: (context, state) => const AlphaScannerScreen(),
         ),
       ],
+    ),
+    GoRoute(
+      path: '/manage-watchlist',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const ManageWatchlistScreen(),
+    ),
+    GoRoute(
+      path: '/manage-topics',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const ManageTopicsScreen(),
     ),
     GoRoute(
       path: '/stock/:ticker',
