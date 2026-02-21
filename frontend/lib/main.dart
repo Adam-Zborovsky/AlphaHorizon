@@ -51,7 +51,7 @@ final _router = GoRouter(
         ),
         GoRoute(
           path: '/scanner',
-          builder: (context, state) => const AlphaScannerScreen(),
+          builder: (context, state) => AlphaScannerScreen(),
         ),
       ],
     ),
