@@ -49,6 +49,41 @@ class BriefingController {
   }
 
   /**
+   * POST /webhook/update-briefing-config
+   * Receives updated topics/tickers from the frontend
+   */
+  async updateConfig(req, res, next) {
+    try {
+      const config = await briefingService.updateConfig(req.body);
+      
+      res.status(200).json({
+        success: true,
+        data: config,
+        message: 'Briefing configuration updated successfully.',
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/briefing/config
+   * Returns the current topics and tickers configuration
+   */
+  async getConfig(req, res, next) {
+    try {
+      const config = await briefingService.getConfig();
+      
+      res.status(200).json({
+        success: true,
+        data: config || { topics: [], tickers: [] },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
    * GET /api/v1/briefing/history
    * List historical briefings with pagination
    */

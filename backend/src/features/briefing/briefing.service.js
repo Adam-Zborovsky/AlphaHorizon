@@ -1,4 +1,5 @@
 const Briefing = require('./briefing.model');
+const BriefingConfig = require('./briefing_config.model');
 
 class BriefingService {
   /**
@@ -22,6 +23,30 @@ class BriefingService {
     });
 
     return await briefing.save();
+  }
+
+  /**
+   * Update the global briefing configuration (topics/tickers)
+   * @param {Object} data - { topics: Array, tickers: Array }
+   */
+  async updateConfig(data) {
+    const cleanData = data.data || data;
+    const { topics, tickers } = cleanData;
+
+    // Use findOneAndUpdate with upsert:true to maintain only one config
+    // or create if it doesn't exist.
+    return await BriefingConfig.findOneAndUpdate(
+      {},
+      { topics, tickers },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
+
+  /**
+   * Get the global briefing configuration
+   */
+  async getConfig() {
+    return await BriefingConfig.findOne().sort({ updatedAt: -1 });
   }
 
   /**

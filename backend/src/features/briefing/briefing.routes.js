@@ -16,6 +16,12 @@ router.get('/', briefingController.getLatest);
 router.post('/', briefingController.save);
 
 /**
+ * @route GET /api/v1/briefing/config
+ * Returns the current configuration (topics, tickers)
+ */
+router.get('/config', briefingController.getConfig);
+
+/**
  * @route GET /api/v1/briefing/history
  * List historical briefings
  */
