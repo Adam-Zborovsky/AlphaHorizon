@@ -367,6 +367,25 @@
         80200,
         1850
       ]
+    },
+    {
+      "parameters": {
+        "command": "=cat <<'EOF' > /home/adam/n8n/AI_Briefing/briefing_config.json\n{{ JSON.stringify($json.data, null, 2) }}\nEOF"
+      },
+      "id": "save-config-to-file-node",
+      "name": "Save Config to File",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        80400,
+        1850
+      ],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -382,7 +401,29 @@
         ]
       ]
     },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Web Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Fetch Web Config": {
+      "main": [
+        [
+          {
+            "node": "Save Config to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Config to File": {
       "main": [
         [
           {
@@ -393,7 +434,7 @@
         ]
       ]
     },
-    "Schedule Trigger": {
+    "Config": {
       "main": [
         [
           {
