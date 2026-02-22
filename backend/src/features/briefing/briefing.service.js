@@ -70,13 +70,62 @@ class BriefingService {
    */
   async save(data) {
     const cleanData = data.data || data;
+    let parsedData = cleanData;
     
-    // Validate JSON if it's a string
+    // Validate and parse JSON if it's a string
     if (typeof cleanData === 'string' && (cleanData.trim().startsWith('{') || cleanData.trim().startsWith('['))) {
       try {
-        JSON.parse(cleanData);
+        parsedData = JSON.parse(cleanData);
       } catch (e) {
         console.warn('⚠️ BriefingService: Incoming briefing is INVALID JSON.');
+      }
+    }
+
+    // VALIDATION: Check if the data is connected to our configuration
+    const config = await this.getConfig();
+    if (config && config.tickers && config.tickers.length > 0 && typeof parsedData === 'object' && parsedData !== null) {
+      const requestedTickers = config.tickers.map(t => t.toUpperCase());
+      
+      // Extract all tickers mentioned in the briefing
+      const foundTickers = new Set();
+      
+      const findTickers = (obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        
+        if (Array.isArray(obj)) {
+          obj.forEach(item => findTickers(item));
+        } else {
+          if (obj.ticker && typeof obj.ticker === 'string') {
+            foundTickers.add(obj.ticker.toUpperCase());
+          }
+          Object.values(obj).forEach(val => {
+            if (typeof val === 'object') findTickers(val);
+          });
+        }
+      };
+      
+      findTickers(parsedData);
+      
+      // Check if there is any overlap
+      const hasOverlap = requestedTickers.some(t => foundTickers.has(t));
+      
+      if (!hasOverlap && foundTickers.size > 0) {
+        console.warn('⚠️ BriefingService: HALLUCINATION DETECTED.');
+        console.warn(`Requested: [${requestedTickers.join(', ')}]`);
+        console.warn(`Received: [${Array.from(foundTickers).join(', ')}]`);
+        console.warn('Rejecting save and triggering retry...');
+        
+        this.triggerWorkflow('hallucination_detected_retry');
+        
+        const error = new Error('Briefing data mismatch: Requested tickers not found in response.');
+        error.status = 422;
+        throw error;
+      }
+
+      if (foundTickers.size === 0 && requestedTickers.length > 0) {
+        console.warn('⚠️ BriefingService: No tickers found in briefing data. Checking if this is expected...');
+        // If we expect tickers but found none, it might be a partial failure or very broad news
+        // We'll allow it but log it, unless it's completely empty
       }
     }
 
