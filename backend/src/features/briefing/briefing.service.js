@@ -31,19 +31,24 @@ class BriefingService {
 
     // Filter briefing data based on enabled topics if it's an object/map
     if (config && config.topics && typeof briefingData === 'object' && briefingData !== null && !Array.isArray(briefingData)) {
-      console.log('BriefingService: Filtering briefing data by enabled topics.');
+      console.log('BriefingService: Filtering briefing data. Total categories found:', Object.keys(briefingData).length);
       const filteredData = {};
-      const enabledTopicNames = config.topics
-        .filter(t => t.enabled)
+      
+      const disabledTopicNames = config.topics
+        .filter(t => !t.enabled)
         .map(t => t.name);
+      
+      console.log('BriefingService: Disabled topics:', disabledTopicNames);
 
       Object.keys(briefingData).forEach(categoryName => {
-        if (enabledTopicNames.includes(categoryName)) {
+        if (!disabledTopicNames.includes(categoryName)) {
           filteredData[categoryName] = briefingData[categoryName];
+        } else {
+          console.log(`BriefingService: Category "${categoryName}" is disabled and filtered out.`);
         }
       });
       briefingData = filteredData;
-      console.log(`BriefingService: Filtered briefing down to ${Object.keys(briefingData).length} categories.`);
+      console.log(`BriefingService: Final filtered briefing count: ${Object.keys(briefingData).length}`);
     } 
     else if (config && config.topics && Array.isArray(briefingData)) {
       // Handle array format if it ever appears

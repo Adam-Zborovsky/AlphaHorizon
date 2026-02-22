@@ -90,22 +90,33 @@ class BriefingRepository extends _$BriefingRepository {
             for (final item in list) {
               if (item is Map<String, dynamic>) {
                 final String name = item['category'] ?? item['name'] ?? 'General';
-                categoriesMap[name] = CategoryData.fromJson(item);
+                try {
+                  categoriesMap[name] = CategoryData.fromJson(item);
+                } catch (e) {
+                  debugPrint('BriefingRepository: Failed to parse category $name: $e');
+                }
               }
             }
           } 
-          // Pattern B: direct map
+          // Pattern B: direct map (keys are category names)
           else {
             decodedContent.forEach((key, value) {
-              if (value is Map<String, dynamic> && (value.containsKey('items') || value.containsKey('sentiment_score'))) {
-                try {
-                  categoriesMap[key] = CategoryData.fromJson(value);
-                } catch (e) {
-                  // Skip
+              if (value is Map<String, dynamic>) {
+                // Heuristic: check if it looks like a category (has items or sentiment)
+                if (value.containsKey('items') || value.containsKey('sentiment_score') || value.containsKey('summary')) {
+                  try {
+                    categoriesMap[key] = CategoryData.fromJson(value);
+                  } catch (e) {
+                    debugPrint('BriefingRepository: Failed to parse category $key: $e');
+                  }
                 }
               }
             });
           }
+        }
+
+        if (categoriesMap.isEmpty) {
+          debugPrint('BriefingRepository: No categories found in decoded content. Keys found: ${decodedContent.keys.join(', ')}');
         }
 
         return BriefingData(

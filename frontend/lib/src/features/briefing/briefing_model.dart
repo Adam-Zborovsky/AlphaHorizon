@@ -17,9 +17,9 @@ abstract class BriefingData with _$BriefingData {
 @freezed
 abstract class CategoryData with _$CategoryData {
   const factory CategoryData({
-    @JsonKey(name: 'sentiment_score') required double sentimentScore,
-    required String summary,
-    required List<BriefingItem> items,
+    @JsonKey(name: 'sentiment_score') @Default(0.0) double sentimentScore,
+    @Default('') String summary,
+    @Default([]) List<BriefingItem> items,
   }) = _CategoryData;
 
   factory CategoryData.fromJson(Map<String, dynamic> json) => _$CategoryDataFromJson(json);
