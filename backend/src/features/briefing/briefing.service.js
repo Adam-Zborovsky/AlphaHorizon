@@ -10,13 +10,43 @@ class BriefingService {
     const config = await BriefingConfig.findOne();
 
     if (!briefing) {
+      console.log('BriefingService: No latest briefing found in database.');
       return null;
     }
 
+    console.log(`BriefingService: Found latest briefing from ${briefing.createdAt}`);
+
     let briefingData = briefing.data;
 
-    // Filter briefing data based on enabled topics
-    if (config && config.topics && Array.isArray(briefingData)) {
+    // If data is a string (common from n8n), try to parse it if we need to filter
+    if (typeof briefingData === 'string') {
+      try {
+        briefingData = JSON.parse(briefingData);
+        console.log('BriefingService: Parsed briefing data string into object.');
+      } catch (e) {
+        console.error('BriefingService: Failed to parse briefing data string:', e.message);
+        // Keep it as string if parsing fails, filtering will be skipped
+      }
+    }
+
+    // Filter briefing data based on enabled topics if it's an object/map
+    if (config && config.topics && typeof briefingData === 'object' && briefingData !== null && !Array.isArray(briefingData)) {
+      console.log('BriefingService: Filtering briefing data by enabled topics.');
+      const filteredData = {};
+      const enabledTopicNames = config.topics
+        .filter(t => t.enabled)
+        .map(t => t.name);
+
+      Object.keys(briefingData).forEach(categoryName => {
+        if (enabledTopicNames.includes(categoryName)) {
+          filteredData[categoryName] = briefingData[categoryName];
+        }
+      });
+      briefingData = filteredData;
+      console.log(`BriefingService: Filtered briefing down to ${Object.keys(briefingData).length} categories.`);
+    } 
+    else if (config && config.topics && Array.isArray(briefingData)) {
+      // Handle array format if it ever appears
       briefingData = briefingData.filter(category => {
         const categoryName = Object.keys(category)[0];
         const enabledTopic = config.topics.find(t => t.name === categoryName);
@@ -54,39 +84,41 @@ class BriefingService {
    * @param {Object} data - { topics: Array, tickers: Array }
    */
   async updateConfig(data) {
+    console.log('BriefingService: Updating config with data:', JSON.stringify(data, null, 2));
     const cleanData = data.data || data;
     const { topics: newTopics, tickers } = cleanData;
 
     let config = await BriefingConfig.findOne();
     if (!config) {
+      console.log('BriefingService: No existing config found, creating new one.');
       config = new BriefingConfig();
     }
 
     if (newTopics && Array.isArray(newTopics)) {
-      const existingTopics = config.topics.map(t => t.name);
-      const updatedTopics = [];
-
+      console.log(`BriefingService: Updating ${newTopics.length} topics.`);
+      
+      // Clear existing topics and rebuild to ensure order and state match exactly
+      // Mongoose subdocument arrays are better managed by clearing and re-adding 
+      // if the entire state is sent from the frontend.
+      config.topics = [];
       for (const newTopic of newTopics) {
-        const existingTopicIndex = config.topics.findIndex(t => t.name === newTopic.name);
-        if (existingTopicIndex !== -1) {
-          // Update existing topic's enabled status
-          config.topics[existingTopicIndex].enabled = newTopic.enabled;
-        } else {
-          // Add new topic
-          config.topics.push({ name: newTopic.name, enabled: newTopic.enabled });
+        if (newTopic && newTopic.name) {
+          config.topics.push({ 
+            name: newTopic.name, 
+            enabled: typeof newTopic.enabled === 'boolean' ? newTopic.enabled : true 
+          });
         }
       }
-      // Remove any topics from the config that are not in the newTopics array
-      config.topics = config.topics.filter(existingTopic =>
-        newTopics.some(newTopic => newTopic.name === existingTopic.name)
-      );
     }
     
     if (tickers) {
+      console.log(`BriefingService: Updating ${tickers.length} tickers.`);
       config.tickers = tickers;
     }
 
-    return await config.save();
+    const savedConfig = await config.save();
+    console.log('BriefingService: Config saved successfully.');
+    return savedConfig;
   }
 
   /**

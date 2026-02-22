@@ -16,7 +16,17 @@ class BriefingRepository extends _$BriefingRepository {
           .timeout(const Duration(seconds: 15));
       
       if (response.statusCode == 200) {
-        final dynamic decodedBody = jsonDecode(response.body);
+        if (response.body.isEmpty) {
+          return const BriefingData(data: {}, success: true, message: 'Empty response from server.');
+        }
+
+        final dynamic decodedBody;
+        try {
+          decodedBody = jsonDecode(response.body);
+        } catch (e) {
+          throw Exception('Failed to parse server response: $e\nBody: ${response.body.substring(0, response.body.length > 100 ? 100 : response.body.length)}...');
+        }
+        
         Map<String, dynamic> firstBriefing;
 
         // 1. Handle top-level list or map
@@ -43,19 +53,34 @@ class BriefingRepository extends _$BriefingRepository {
           rawContent = rawData;
         } else if (rawData is Map) {
           rawContent = jsonEncode(rawData);
+        } else if (rawData == null) {
+          return const BriefingData(data: {}, success: true, message: 'Briefing data is empty.');
         } else {
           rawContent = jsonEncode(firstBriefing);
         }
         
-        // Clean Markdown if present
-        final RegExp jsonRegex = RegExp(r'\{[\s\S]*\}');
-        final match = jsonRegex.firstMatch(rawContent);
-        if (match != null) {
-          rawContent = match.group(0)!;
+        // Clean Markdown or unwanted wrapper if present
+        // Use a more careful approach than just a greedy regex
+        if (rawContent.contains('```')) {
+          final RegExp jsonBlockRegex = RegExp(r'```(?:json)?\s*(\{[\s\S]*\})\s*```');
+          final match = jsonBlockRegex.firstMatch(rawContent);
+          if (match != null) {
+            rawContent = match.group(1)!;
+          }
         }
 
         // 3. Decode content
-        final dynamic decodedContent = jsonDecode(rawContent);
+        if (rawContent.trim().isEmpty) {
+           return const BriefingData(data: {}, success: true, message: 'Empty briefing content.');
+        }
+
+        final dynamic decodedContent;
+        try {
+          decodedContent = jsonDecode(rawContent);
+        } catch (e) {
+          throw Exception('Failed to parse briefing content: $e\nContent starts with: ${rawContent.substring(0, rawContent.length > 100 ? 100 : rawContent.length)}');
+        }
+
         final Map<String, CategoryData> categoriesMap = {};
 
         if (decodedContent is Map<String, dynamic>) {
