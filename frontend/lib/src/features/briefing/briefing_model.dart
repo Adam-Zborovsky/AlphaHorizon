@@ -45,6 +45,7 @@ abstract class BriefingItem with _$BriefingItem {
     List<String>? risks,
     @JsonKey(name: 'potential_price_action') String? potentialPriceAction,
     @JsonKey(name: 'sentiment_score') double? sentimentScore,
+    List<double>? history,
   }) = _BriefingItem;
 
   factory BriefingItem.fromJson(Map<String, dynamic> json) => _$BriefingItemFromJson(json);

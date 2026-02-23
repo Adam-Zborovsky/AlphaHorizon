@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/glass_card.dart';
+import '../../core/widgets/section_header.dart';
 import '../briefing/briefing_repository.dart';
 import '../stock/stock_repository.dart';
 import '../briefing/briefing_model.dart';
@@ -43,7 +44,15 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 30)),
-            const _SectionHeader(title: 'Intelligence Pillars'),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SectionHeader(
+                  title: 'Intelligence Pillars',
+                  onTap: () => context.go('/vault'),
+                ),
+              ),
+            ),
             const SliverToBoxAdapter(child: SizedBox(height: 15)),
             briefingAsync.when(
               data: (briefing) => _IntelPillarsGrid(briefing: briefing),
@@ -51,7 +60,15 @@ class DashboardScreen extends ConsumerWidget {
               error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 30)),
-            const _SectionHeader(title: 'Market Nexus'),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SectionHeader(
+                  title: 'Market Nexus',
+                  onTap: () => context.go('/nexus'),
+                ),
+              ),
+            ),
             const SliverToBoxAdapter(child: SizedBox(height: 15)),
             stocksAsync.when(
               data: (stocks) => _MarketNexusList(stocks: stocks),
@@ -144,36 +161,6 @@ class _WarRoomHeader extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: GestureDetector(
-          onTap: () {
-            if (title.contains('Intelligence')) context.go('/vault');
-            if (title.contains('Market')) context.go('/nexus');
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.white70,
-              )),
-              Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppTheme.goldAmber.withOpacity(0.5)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _DailyBriefingSummary extends StatelessWidget {
   final BriefingData briefing;
   const _DailyBriefingSummary({required this.briefing});
@@ -191,13 +178,27 @@ class _DailyBriefingSummary extends StatelessWidget {
       );
     }
 
-    final categoryName = briefing.data.keys.first;
-    final category = briefing.data.values.first;
+    // Try to find a category with a meaningful summary (not the default 'Direct item list')
+    String? categoryName;
+    CategoryData? category;
+    
+    for (var entry in briefing.data.entries) {
+      if (entry.value.summary.isNotEmpty && entry.value.summary != 'Direct item list' && entry.value.summary != 'Strategic news analysis for ${entry.key}.') {
+        categoryName = entry.key;
+        category = entry.value;
+        break;
+      }
+    }
+    
+    // Fallback to the first one if no ideal summary found
+    categoryName ??= briefing.data.keys.first;
+    category ??= briefing.data.values.first;
+
     final summary = category.summary;
     final score = category.sentimentScore;
 
     return GestureDetector(
-      onTap: () => context.push('/vault?category=${Uri.encodeComponent(categoryName)}'),
+      onTap: () => context.push('/vault?category=${Uri.encodeComponent(categoryName!)}'),
       child: GlassCard(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -233,7 +234,7 @@ class _DailyBriefingSummary extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              summary,
+              summary.isEmpty ? 'Tap to view latest intelligence reports.' : summary,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.4),
               maxLines: 4,
               overflow: TextOverflow.ellipsis,

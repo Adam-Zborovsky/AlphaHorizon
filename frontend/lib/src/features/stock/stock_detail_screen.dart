@@ -116,6 +116,17 @@ class _DetailContent extends ConsumerWidget {
                         stock.analysis ?? "No AI analysis available for this ticker today.",
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5),
                       ),
+                      const SizedBox(height: 20),
+                      OutlinedButton.icon(
+                        onPressed: () => context.push('/vault?category=${Uri.encodeComponent('Market Analysis')}'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.goldAmber,
+                          side: BorderSide(color: AppTheme.goldAmber.withOpacity(0.3)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.analytics_outlined, size: 18),
+                        label: const Text('VIEW MARKET ANALYSIS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      ),
                       if (stock.potentialPriceAction != null) ...[
                         const SizedBox(height: 20),
                         const Text(

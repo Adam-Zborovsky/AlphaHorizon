@@ -52,9 +52,8 @@ class StockRepository extends _$StockRepository {
           final double sentiment = item.sentimentScore ?? 
               (item.sentiment is double ? item.sentiment as double : 0.0);
           
-          // Generate 15 points of realistic-looking history
-          // If it's market closed, we simulate the "last session" activity
-          final List<double> history = _generateHistory(price, change, sentiment, random, isMarketClosed);
+          // Use history from backend if available, otherwise simulate
+          final List<double> history = item.history ?? _generateHistory(price, change, sentiment, random, isMarketClosed);
 
           stocks.add(StockData(
             ticker: item.ticker!,

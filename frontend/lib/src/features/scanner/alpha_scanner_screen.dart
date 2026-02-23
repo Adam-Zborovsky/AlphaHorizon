@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:horizon/src/core/theme/app_theme.dart';
 import 'package:horizon/src/core/widgets/glass_card.dart';
+import 'package:horizon/src/core/widgets/section_header.dart';
 import 'package:horizon/src/features/stock/stock_repository.dart';
 import 'package:horizon/src/features/briefing/briefing_repository.dart';
 import 'package:horizon/src/features/briefing/briefing_model.dart';
@@ -40,7 +41,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                     const _ScannerPulse(),
                     const SizedBox(height: 30),
                     
-                    const _ScannerSectionHeader(title: 'Strategic Opportunities'),
+                    const SectionHeader(title: 'Strategic Opportunities'),
                     const SizedBox(height: 8),
                     const Text(
                       'High-conviction ideas scouted from across the market.',
@@ -49,7 +50,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                     const SizedBox(height: 15),
                     briefingAsync.when(
                       data: (briefing) {
-                        final opportunities = briefing.data['strategic_opportunities']?.items ?? [];
+                        final opportunities = briefing.data['Opportunities']?.items ?? [];
                         if (opportunities.isEmpty) {
                           return const _EmptyScannerState(message: 'No new opportunities scouted.');
                         }
@@ -62,7 +63,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                     ),
 
                     const SizedBox(height: 30),
-                    const _ScannerSectionHeader(title: 'High-Signal Divergences'),
+                    const SectionHeader(title: 'High-Signal Divergences'),
                     const SizedBox(height: 8),
                     const Text(
                       'AI Sentiment is high, but price action remains flat/down.',
@@ -84,7 +85,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                     ),
                     
                     const SizedBox(height: 30),
-                    const _ScannerSectionHeader(title: 'Strategic Catalysts'),
+                    const SectionHeader(title: 'Strategic Catalysts'),
                     const SizedBox(height: 8),
                     const Text(
                       'Deep-intelligence anchors extracted from daily briefing.',
@@ -95,7 +96,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                       data: (briefing) {
                         final List<BriefingItem> catalysts = [];
                         briefing.data.forEach((key, cat) {
-                          if (key != 'strategic_opportunities') {
+                          if (key != 'Opportunities') {
                             catalysts.addAll(cat.items.where((i) => i.takeaway != null));
                           }
                         });
@@ -207,22 +208,6 @@ class _ScannerPulseState extends State<_ScannerPulse> with SingleTickerProviderS
           ),
         );
       },
-    );
-  }
-}
-
-class _ScannerSectionHeader extends StatelessWidget {
-  final String title;
-  const _ScannerSectionHeader({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5)),
-        const SizedBox(width: 8),
-        Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppTheme.goldAmber, shape: BoxShape.circle)),
-      ],
     );
   }
 }

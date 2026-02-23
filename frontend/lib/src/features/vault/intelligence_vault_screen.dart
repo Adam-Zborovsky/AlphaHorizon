@@ -396,7 +396,7 @@ class _NewsCard extends ConsumerWidget {
             ],
             if (item.risks != null && item.risks!.isNotEmpty) ...[
               const SizedBox(height: 15),
-              const Text('RISKS', style: TextStyle(color: AppTheme.softCrimson.withOpacity(0.5), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+              Text('RISKS', style: TextStyle(color: AppTheme.softCrimson.withOpacity(0.5), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
               const SizedBox(height: 5),
               ...item.risks!.map((r) => Padding(
                 padding: const EdgeInsets.only(bottom: 4),

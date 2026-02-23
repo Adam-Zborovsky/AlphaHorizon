@@ -81,6 +81,30 @@ class BriefingService {
       }
     }
 
+    // Enrich data with sparkline history for all tickers
+    const enrichWithHistory = (obj) => {
+      if (!obj || typeof obj !== 'object') return;
+      
+      if (Array.isArray(obj)) {
+        obj.forEach(item => enrichWithHistory(item));
+      } else {
+        if (obj.ticker && (obj.price || obj.sentiment_score || obj.sentiment)) {
+          const price = parseFloat(String(obj.price || '0').replace(/[^\d.]/g, '')) || 100.0;
+          const change = parseFloat(String(obj.change || '0').replace(/[^\d.+-]/g, '')) || 0.0;
+          const sentiment = parseFloat(obj.sentiment_score || obj.sentiment || 0);
+          
+          if (!obj.history) {
+            obj.history = this.generateHistory(price, change, sentiment);
+          }
+        }
+        Object.values(obj).forEach(val => {
+          if (typeof val === 'object') enrichWithHistory(val);
+        });
+      }
+    };
+
+    enrichWithHistory(parsedData);
+
     // VALIDATION: Check if the data is connected to our configuration
     const config = await this.getConfig();
     if (config && config.tickers && config.tickers.length > 0 && typeof parsedData === 'object' && parsedData !== null) {
@@ -130,11 +154,40 @@ class BriefingService {
     }
 
     const briefing = new Briefing({
-      data: cleanData,
+      data: parsedData, // Use the enriched parsedData
       source: 'n8n',
     });
 
     return await briefing.save();
+  }
+
+  /**
+   * Generates a 15-point synthetic history for a ticker
+   */
+  generateHistory(currentPrice, changePercent, sentiment) {
+    if (!currentPrice || currentPrice <= 0) return Array.from({ length: 15 }, () => 10.0);
+    
+    const points = [];
+    let lastVal = parseFloat(currentPrice);
+    const change = parseFloat(changePercent) || 0;
+    const sent = parseFloat(sentiment) || 0;
+    
+    points.push(lastVal);
+    
+    const effectiveChange = change === 0 ? (Math.random() - 0.5) * 0.5 : change;
+
+    for (let i = 0; i < 14; i++) {
+      const volatility = lastVal * 0.012;
+      const bias = (effectiveChange / 100) * (lastVal / 10);
+      const noise = (Math.random() - 0.5) * volatility;
+      const sentimentInfluence = sent * (lastVal * 0.002);
+      
+      lastVal = lastVal - bias + noise - sentimentInfluence;
+      if (lastVal < currentPrice * 0.7) lastVal = currentPrice * 0.7 + (Math.random() * 5);
+      
+      points.unshift(lastVal);
+    }
+    return points;
   }
 
   /**

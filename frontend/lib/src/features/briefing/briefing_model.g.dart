@@ -62,6 +62,9 @@ _BriefingItem _$BriefingItemFromJson(Map<String, dynamic> json) =>
           .toList(),
       potentialPriceAction: json['potential_price_action'] as String?,
       sentimentScore: (json['sentiment_score'] as num?)?.toDouble(),
+      history: (json['history'] as List<dynamic>?)
+          ?.map((e) => (e as num).toDouble())
+          .toList(),
     );
 
 Map<String, dynamic> _$BriefingItemToJson(_BriefingItem instance) =>
@@ -82,4 +85,5 @@ Map<String, dynamic> _$BriefingItemToJson(_BriefingItem instance) =>
       'risks': instance.risks,
       'potential_price_action': instance.potentialPriceAction,
       'sentiment_score': instance.sentimentScore,
+      'history': instance.history,
     };
