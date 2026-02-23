@@ -291,6 +291,63 @@ class BriefingService {
   }
 
   /**
+   * Completely remove a topic from the configuration.
+   * @param {string} topicName - The name of the topic to remove.
+   */
+  async removeTopic(topicName) {
+    let config;
+    try {
+      config = await BriefingConfig.findOne();
+      if (!config || !config.topics) return null;
+      
+      const originalLength = config.topics.length;
+      config.topics = config.topics.filter(t => t.name !== topicName);
+      
+      if (config.topics.length === originalLength) return config; // No change
+
+      return await config.save();
+    } catch (err) {
+      console.error('BriefingService: Error in removeTopic:', err);
+      throw err;
+    }
+  }
+
+  /**
+   * Get recommended topics based on categories found in the latest briefing 
+   * that the user isn't already following.
+   */
+  async getRecommendedTopics() {
+    try {
+      const briefing = await Briefing.findOne().sort({ createdAt: -1 });
+      const config = await BriefingConfig.findOne();
+      
+      const followedTopics = config ? config.topics.map(t => t.name) : [];
+      const recommendedSet = new Set(['Geopolitical Defense & AI Strategy', 'Market Trends & Analysis', 'Tech Innovation & Disruptions', 'Economic Indicators', 'Company News']);
+
+      if (briefing && briefing.data) {
+        let briefingData = briefing.data;
+        if (typeof briefingData === 'string') {
+          try {
+            briefingData = JSON.parse(briefingData);
+          } catch (e) {
+            console.warn('BriefingService: Failed to parse briefing data for recommendations');
+          }
+        }
+
+        if (typeof briefingData === 'object' && !Array.isArray(briefingData)) {
+          Object.keys(briefingData).forEach(topic => recommendedSet.add(topic));
+        }
+      }
+
+      // Filter out already followed topics
+      return Array.from(recommendedSet).filter(topic => !followedTopics.includes(topic));
+    } catch (err) {
+      console.error('BriefingService: Error in getRecommendedTopics:', err);
+      return [];
+    }
+  }
+
+  /**
    * Trigger the external n8n workflow
    * @param {string} reason 
    */

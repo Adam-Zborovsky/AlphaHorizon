@@ -35,6 +35,7 @@ class _ManageTopicsScreenState extends ConsumerState<ManageTopicsScreen> {
   @override
   Widget build(BuildContext context) {
     final briefingConfigAsync = ref.watch(briefingConfigRepositoryProvider);
+    final recommendedTopicsAsync = ref.watch(recommendedTopicsProvider);
 
     return Scaffold(
       backgroundColor: AppTheme.obsidian,
@@ -53,17 +54,26 @@ class _ManageTopicsScreenState extends ConsumerState<ManageTopicsScreen> {
           SliverToBoxAdapter(
             child: briefingConfigAsync.when(
               data: (config) {
-                // Filter out topics already in the config to avoid duplicates in recommended section logic
-                final recommendedFiltered = _defaultRecommendedTopics.where(
-                  (recTopic) => !config.topics.any((cfgTopic) => cfgTopic.name == recTopic)
-                ).toList();
+                return recommendedTopicsAsync.when(
+                  data: (newsRecommended) {
+                    // Combine default and news recommendations, prioritizing news
+                    final combinedRecommended = {...newsRecommended, ..._defaultRecommendedTopics}.toList();
+                    
+                    // Filter out topics already in the config to avoid duplicates
+                    final filtered = combinedRecommended.where(
+                      (recTopic) => !config.topics.any((cfgTopic) => cfgTopic.name == recTopic)
+                    ).toList();
 
-                return _RecommendedSection(
-                  recommended: recommendedFiltered,
-                  onTap: (topic) async => await ref.read(briefingConfigRepositoryProvider.notifier).toggleTopic(topic, true),
+                    return _RecommendedSection(
+                      recommended: filtered,
+                      onTap: (topic) async => await ref.read(briefingConfigRepositoryProvider.notifier).toggleTopic(topic, true),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (err, stack) => const SizedBox.shrink(),
                 );
               },
-              loading: () => const SizedBox.shrink(), // Or a small loader for this section
+              loading: () => const SizedBox.shrink(),
               error: (err, stack) => const SizedBox.shrink(),
             ),
           ),
@@ -101,6 +111,31 @@ class _ManageTopicsScreenState extends ConsumerState<ManageTopicsScreen> {
                       isEnabled: topic.enabled,
                       onToggle: (bool newValue) async {
                         await ref.read(briefingConfigRepositoryProvider.notifier).toggleTopic(topic.name, newValue);
+                      },
+                      onRemove: () async {
+                        // Confirm removal
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: AppTheme.obsidian,
+                            title: const Text('REMOVE TOPIC', style: TextStyle(color: AppTheme.goldAmber, letterSpacing: 1)),
+                            content: Text('Completely remove "$topic.name" from your intelligence stream?', style: const TextStyle(color: Colors.white70)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('CANCEL', style: TextStyle(color: Colors.white38)),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('REMOVE', style: TextStyle(color: Colors.redAccent)),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed == true) {
+                          await ref.read(briefingConfigRepositoryProvider.notifier).removeTopic(topic.name);
+                        }
                       },
                     );
                   },
@@ -218,11 +253,13 @@ class _TopicItem extends StatelessWidget {
   final String title;
   final bool isEnabled;
   final ValueChanged<bool> onToggle;
+  final VoidCallback onRemove;
 
   const _TopicItem({
     required this.title, 
     required this.isEnabled, 
     required this.onToggle,
+    required this.onRemove,
   });
 
   @override
@@ -254,6 +291,11 @@ class _TopicItem extends StatelessWidget {
               activeColor: AppTheme.goldAmber,
               inactiveTrackColor: Colors.white10,
               inactiveThumbColor: Colors.white30,
+            ),
+            IconButton(
+              onPressed: onRemove,
+              icon: const Icon(Icons.delete_outline_rounded, color: Colors.white24, size: 20),
+              tooltip: 'Remove topic completely',
             ),
           ],
         ),

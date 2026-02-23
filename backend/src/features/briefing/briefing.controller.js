@@ -77,6 +77,42 @@ class BriefingController {
   }
 
   /**
+   * DELETE /api/v1/briefing/config/topic/:topicName
+   * Completely removes a topic from the user's list.
+   */
+  async removeTopic(req, res, next) {
+    try {
+      const { topicName } = req.params;
+      const config = await briefingService.removeTopic(topicName);
+      
+      res.status(200).json({
+        success: true,
+        data: config,
+        message: `Topic "${topicName}" removed from list.`,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/v1/briefing/config/recommended
+   * Suggests new topics based on the latest news.
+   */
+  async getRecommendedTopics(req, res, next) {
+    try {
+      const topics = await briefingService.getRecommendedTopics();
+      
+      res.status(200).json({
+        success: true,
+        data: topics,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
    * POST /webhook/update-briefing-config
    * Receives updated topics/tickers from the frontend
    */

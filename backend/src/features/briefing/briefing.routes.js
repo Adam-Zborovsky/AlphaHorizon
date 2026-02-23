@@ -34,6 +34,8 @@ router.get('/config', briefingController.getConfig);
 router.get('/history', briefingController.getHistory);
 
 router.put('/config/topic/:topicName', briefingController.toggleTopic);
+router.delete('/config/topic/:topicName', briefingController.removeTopic);
+router.get('/config/recommended', briefingController.getRecommendedTopics);
 
 /**
  * @route PUT /api/v1/briefing/config
