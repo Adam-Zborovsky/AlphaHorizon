@@ -8,6 +8,8 @@ import 'briefing_model.dart';
 
 part 'briefing_repository.g.dart';
 
+@riverpod
+class BriefingRepository extends _$BriefingRepository {
   String _formatCategory(String key) {
     if (key == 'news_intel') return 'Strategic News Intel';
     if (key == 'market_analyst') return 'Market Analysis';
@@ -74,7 +76,6 @@ part 'briefing_repository.g.dart';
         }
         
         // Clean Markdown or unwanted wrapper if present
-        // Use a more careful approach than just a greedy regex
         if (rawContent.contains('```')) {
           final RegExp jsonBlockRegex = RegExp(r'```(?:json)?\s*(\{[\s\S]*\})\s*```');
           final match = jsonBlockRegex.firstMatch(rawContent);
@@ -98,7 +99,7 @@ part 'briefing_repository.g.dart';
         final Map<String, CategoryData> categoriesMap = {};
 
         if (decodedContent is Map<String, dynamic>) {
-          // 1. Handle explicit news containers (Nested Pattern)
+          // 1. Handle explicit news containers
           final newsContainers = ['news', 'news_intel', 'news_categories'];
           for (final containerKey in newsContainers) {
             if (decodedContent.containsKey(containerKey)) {
@@ -137,7 +138,12 @@ part 'briefing_repository.g.dart';
                       // Flatten 'analysis' if it's nested (from market_analyst)
                       if (map.containsKey('analysis') && map['analysis'] is Map<String, dynamic>) {
                         final analysis = map['analysis'] as Map<String, dynamic>;
-                        return BriefingItem.fromJson({...map, ...analysis});
+                        final String? outlook = analysis['outlook']?.toString();
+                        return BriefingItem.fromJson({
+                          ...map, 
+                          ...analysis,
+                          if (outlook != null) 'takeaway': outlook,
+                        });
                       }
                       return BriefingItem.fromJson(map);
                     }).toList(),
@@ -168,9 +174,8 @@ part 'briefing_repository.g.dart';
             }
           }
 
-          // Legacy support (if no categories found yet)
+          // Legacy support
           if (categoriesMap.isEmpty) {
-            // Pattern A: categories list
             if (decodedContent.containsKey('categories') && decodedContent['categories'] is List) {
               final List<dynamic> list = decodedContent['categories'];
               for (final item in list) {
@@ -183,9 +188,7 @@ part 'briefing_repository.g.dart';
                   }
                 }
               }
-            } 
-            // Pattern B: direct map (keys are category names)
-            else {
+            } else {
               decodedContent.forEach((key, value) {
                 final String categoryName = _formatCategory(key);
                 if (value is Map<String, dynamic>) {
@@ -205,46 +208,6 @@ part 'briefing_repository.g.dart';
                     );
                   } catch (e) {
                     debugPrint('BriefingRepository: Failed to parse list category $categoryName: $e');
-                  }
-                }
-              });
-            }
-          }
-        }
-            // Pattern A: categories list
-            if (decodedContent.containsKey('categories') && decodedContent['categories'] is List) {
-              final List<dynamic> list = decodedContent['categories'];
-              for (final item in list) {
-                if (item is Map<String, dynamic>) {
-                  final String name = item['category'] ?? item['name'] ?? 'General';
-                  try {
-                    categoriesMap[name] = CategoryData.fromJson(item);
-                  } catch (e) {
-                    debugPrint('BriefingRepository: Failed to parse category $name: $e');
-                  }
-                }
-              }
-            } 
-            // Pattern B: direct map (keys are category names)
-            else {
-              decodedContent.forEach((key, value) {
-                if (value is Map<String, dynamic>) {
-                  if (value.containsKey('items') || value.containsKey('sentiment_score') || value.containsKey('summary')) {
-                    try {
-                      categoriesMap[key] = CategoryData.fromJson(value);
-                    } catch (e) {
-                      debugPrint('BriefingRepository: Failed to parse category $key: $e');
-                    }
-                  }
-                } else if (value is List) {
-                  try {
-                    categoriesMap[key] = CategoryData(
-                      sentimentScore: 0.0,
-                      summary: 'Direct item list',
-                      items: value.map((i) => BriefingItem.fromJson(i as Map<String, dynamic>)).toList(),
-                    );
-                  } catch (e) {
-                    debugPrint('BriefingRepository: Failed to parse list category $key: $e');
                   }
                 }
               });

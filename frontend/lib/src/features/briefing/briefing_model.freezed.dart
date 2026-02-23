@@ -566,7 +566,8 @@ as List<BriefingItem>,
 mixin _$BriefingItem {
 
  String? get title; String? get l; dynamic get sentiment;// Changed to dynamic to handle both double and String
- String? get img; String? get takeaway; String? get ticker; String? get name; String? get price; String? get change; String? get analysis; String? get explanation; String? get horizon;// New fields from market_analysis
+ String? get img; String? get takeaway; String? get ticker; String? get name; String? get price; String? get change; dynamic get analysis;// Changed to dynamic to handle both String and Map
+ String? get explanation; String? get horizon;// New fields from market_analysis
  List<String>? get catalysts; List<String>? get risks;@JsonKey(name: 'potential_price_action') String? get potentialPriceAction;@JsonKey(name: 'sentiment_score') double? get sentimentScore; List<double>? get history;
 /// Create a copy of BriefingItem
 /// with the given fields replaced by the non-null parameter values.
@@ -580,12 +581,12 @@ $BriefingItemCopyWith<BriefingItem> get copyWith => _$BriefingItemCopyWithImpl<B
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BriefingItem&&(identical(other.title, title) || other.title == title)&&(identical(other.l, l) || other.l == l)&&const DeepCollectionEquality().equals(other.sentiment, sentiment)&&(identical(other.img, img) || other.img == img)&&(identical(other.takeaway, takeaway) || other.takeaway == takeaway)&&(identical(other.ticker, ticker) || other.ticker == ticker)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.change, change) || other.change == change)&&(identical(other.analysis, analysis) || other.analysis == analysis)&&(identical(other.explanation, explanation) || other.explanation == explanation)&&(identical(other.horizon, horizon) || other.horizon == horizon)&&const DeepCollectionEquality().equals(other.catalysts, catalysts)&&const DeepCollectionEquality().equals(other.risks, risks)&&(identical(other.potentialPriceAction, potentialPriceAction) || other.potentialPriceAction == potentialPriceAction)&&(identical(other.sentimentScore, sentimentScore) || other.sentimentScore == sentimentScore)&&const DeepCollectionEquality().equals(other.history, history));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BriefingItem&&(identical(other.title, title) || other.title == title)&&(identical(other.l, l) || other.l == l)&&const DeepCollectionEquality().equals(other.sentiment, sentiment)&&(identical(other.img, img) || other.img == img)&&(identical(other.takeaway, takeaway) || other.takeaway == takeaway)&&(identical(other.ticker, ticker) || other.ticker == ticker)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.change, change) || other.change == change)&&const DeepCollectionEquality().equals(other.analysis, analysis)&&(identical(other.explanation, explanation) || other.explanation == explanation)&&(identical(other.horizon, horizon) || other.horizon == horizon)&&const DeepCollectionEquality().equals(other.catalysts, catalysts)&&const DeepCollectionEquality().equals(other.risks, risks)&&(identical(other.potentialPriceAction, potentialPriceAction) || other.potentialPriceAction == potentialPriceAction)&&(identical(other.sentimentScore, sentimentScore) || other.sentimentScore == sentimentScore)&&const DeepCollectionEquality().equals(other.history, history));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,l,const DeepCollectionEquality().hash(sentiment),img,takeaway,ticker,name,price,change,analysis,explanation,horizon,const DeepCollectionEquality().hash(catalysts),const DeepCollectionEquality().hash(risks),potentialPriceAction,sentimentScore,const DeepCollectionEquality().hash(history));
+int get hashCode => Object.hash(runtimeType,title,l,const DeepCollectionEquality().hash(sentiment),img,takeaway,ticker,name,price,change,const DeepCollectionEquality().hash(analysis),explanation,horizon,const DeepCollectionEquality().hash(catalysts),const DeepCollectionEquality().hash(risks),potentialPriceAction,sentimentScore,const DeepCollectionEquality().hash(history));
 
 @override
 String toString() {
@@ -600,7 +601,7 @@ abstract mixin class $BriefingItemCopyWith<$Res>  {
   factory $BriefingItemCopyWith(BriefingItem value, $Res Function(BriefingItem) _then) = _$BriefingItemCopyWithImpl;
 @useResult
 $Res call({
- String? title, String? l, dynamic sentiment, String? img, String? takeaway, String? ticker, String? name, String? price, String? change, String? analysis, String? explanation, String? horizon, List<String>? catalysts, List<String>? risks,@JsonKey(name: 'potential_price_action') String? potentialPriceAction,@JsonKey(name: 'sentiment_score') double? sentimentScore, List<double>? history
+ String? title, String? l, dynamic sentiment, String? img, String? takeaway, String? ticker, String? name, String? price, String? change, dynamic analysis, String? explanation, String? horizon, List<String>? catalysts, List<String>? risks,@JsonKey(name: 'potential_price_action') String? potentialPriceAction,@JsonKey(name: 'sentiment_score') double? sentimentScore, List<double>? history
 });
 
 
@@ -629,7 +630,7 @@ as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to
 as String?,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as String?,change: freezed == change ? _self.change : change // ignore: cast_nullable_to_non_nullable
 as String?,analysis: freezed == analysis ? _self.analysis : analysis // ignore: cast_nullable_to_non_nullable
-as String?,explanation: freezed == explanation ? _self.explanation : explanation // ignore: cast_nullable_to_non_nullable
+as dynamic,explanation: freezed == explanation ? _self.explanation : explanation // ignore: cast_nullable_to_non_nullable
 as String?,horizon: freezed == horizon ? _self.horizon : horizon // ignore: cast_nullable_to_non_nullable
 as String?,catalysts: freezed == catalysts ? _self.catalysts : catalysts // ignore: cast_nullable_to_non_nullable
 as List<String>?,risks: freezed == risks ? _self.risks : risks // ignore: cast_nullable_to_non_nullable
@@ -721,7 +722,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? title,  String? l,  dynamic sentiment,  String? img,  String? takeaway,  String? ticker,  String? name,  String? price,  String? change,  String? analysis,  String? explanation,  String? horizon,  List<String>? catalysts,  List<String>? risks, @JsonKey(name: 'potential_price_action')  String? potentialPriceAction, @JsonKey(name: 'sentiment_score')  double? sentimentScore,  List<double>? history)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? title,  String? l,  dynamic sentiment,  String? img,  String? takeaway,  String? ticker,  String? name,  String? price,  String? change,  dynamic analysis,  String? explanation,  String? horizon,  List<String>? catalysts,  List<String>? risks, @JsonKey(name: 'potential_price_action')  String? potentialPriceAction, @JsonKey(name: 'sentiment_score')  double? sentimentScore,  List<double>? history)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BriefingItem() when $default != null:
 return $default(_that.title,_that.l,_that.sentiment,_that.img,_that.takeaway,_that.ticker,_that.name,_that.price,_that.change,_that.analysis,_that.explanation,_that.horizon,_that.catalysts,_that.risks,_that.potentialPriceAction,_that.sentimentScore,_that.history);case _:
@@ -742,7 +743,7 @@ return $default(_that.title,_that.l,_that.sentiment,_that.img,_that.takeaway,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? title,  String? l,  dynamic sentiment,  String? img,  String? takeaway,  String? ticker,  String? name,  String? price,  String? change,  String? analysis,  String? explanation,  String? horizon,  List<String>? catalysts,  List<String>? risks, @JsonKey(name: 'potential_price_action')  String? potentialPriceAction, @JsonKey(name: 'sentiment_score')  double? sentimentScore,  List<double>? history)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? title,  String? l,  dynamic sentiment,  String? img,  String? takeaway,  String? ticker,  String? name,  String? price,  String? change,  dynamic analysis,  String? explanation,  String? horizon,  List<String>? catalysts,  List<String>? risks, @JsonKey(name: 'potential_price_action')  String? potentialPriceAction, @JsonKey(name: 'sentiment_score')  double? sentimentScore,  List<double>? history)  $default,) {final _that = this;
 switch (_that) {
 case _BriefingItem():
 return $default(_that.title,_that.l,_that.sentiment,_that.img,_that.takeaway,_that.ticker,_that.name,_that.price,_that.change,_that.analysis,_that.explanation,_that.horizon,_that.catalysts,_that.risks,_that.potentialPriceAction,_that.sentimentScore,_that.history);case _:
@@ -762,7 +763,7 @@ return $default(_that.title,_that.l,_that.sentiment,_that.img,_that.takeaway,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? title,  String? l,  dynamic sentiment,  String? img,  String? takeaway,  String? ticker,  String? name,  String? price,  String? change,  String? analysis,  String? explanation,  String? horizon,  List<String>? catalysts,  List<String>? risks, @JsonKey(name: 'potential_price_action')  String? potentialPriceAction, @JsonKey(name: 'sentiment_score')  double? sentimentScore,  List<double>? history)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? title,  String? l,  dynamic sentiment,  String? img,  String? takeaway,  String? ticker,  String? name,  String? price,  String? change,  dynamic analysis,  String? explanation,  String? horizon,  List<String>? catalysts,  List<String>? risks, @JsonKey(name: 'potential_price_action')  String? potentialPriceAction, @JsonKey(name: 'sentiment_score')  double? sentimentScore,  List<double>? history)?  $default,) {final _that = this;
 switch (_that) {
 case _BriefingItem() when $default != null:
 return $default(_that.title,_that.l,_that.sentiment,_that.img,_that.takeaway,_that.ticker,_that.name,_that.price,_that.change,_that.analysis,_that.explanation,_that.horizon,_that.catalysts,_that.risks,_that.potentialPriceAction,_that.sentimentScore,_that.history);case _:
@@ -790,7 +791,8 @@ class _BriefingItem implements BriefingItem {
 @override final  String? name;
 @override final  String? price;
 @override final  String? change;
-@override final  String? analysis;
+@override final  dynamic analysis;
+// Changed to dynamic to handle both String and Map
 @override final  String? explanation;
 @override final  String? horizon;
 // New fields from market_analysis
@@ -838,12 +840,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BriefingItem&&(identical(other.title, title) || other.title == title)&&(identical(other.l, l) || other.l == l)&&const DeepCollectionEquality().equals(other.sentiment, sentiment)&&(identical(other.img, img) || other.img == img)&&(identical(other.takeaway, takeaway) || other.takeaway == takeaway)&&(identical(other.ticker, ticker) || other.ticker == ticker)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.change, change) || other.change == change)&&(identical(other.analysis, analysis) || other.analysis == analysis)&&(identical(other.explanation, explanation) || other.explanation == explanation)&&(identical(other.horizon, horizon) || other.horizon == horizon)&&const DeepCollectionEquality().equals(other._catalysts, _catalysts)&&const DeepCollectionEquality().equals(other._risks, _risks)&&(identical(other.potentialPriceAction, potentialPriceAction) || other.potentialPriceAction == potentialPriceAction)&&(identical(other.sentimentScore, sentimentScore) || other.sentimentScore == sentimentScore)&&const DeepCollectionEquality().equals(other._history, _history));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BriefingItem&&(identical(other.title, title) || other.title == title)&&(identical(other.l, l) || other.l == l)&&const DeepCollectionEquality().equals(other.sentiment, sentiment)&&(identical(other.img, img) || other.img == img)&&(identical(other.takeaway, takeaway) || other.takeaway == takeaway)&&(identical(other.ticker, ticker) || other.ticker == ticker)&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.change, change) || other.change == change)&&const DeepCollectionEquality().equals(other.analysis, analysis)&&(identical(other.explanation, explanation) || other.explanation == explanation)&&(identical(other.horizon, horizon) || other.horizon == horizon)&&const DeepCollectionEquality().equals(other._catalysts, _catalysts)&&const DeepCollectionEquality().equals(other._risks, _risks)&&(identical(other.potentialPriceAction, potentialPriceAction) || other.potentialPriceAction == potentialPriceAction)&&(identical(other.sentimentScore, sentimentScore) || other.sentimentScore == sentimentScore)&&const DeepCollectionEquality().equals(other._history, _history));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,l,const DeepCollectionEquality().hash(sentiment),img,takeaway,ticker,name,price,change,analysis,explanation,horizon,const DeepCollectionEquality().hash(_catalysts),const DeepCollectionEquality().hash(_risks),potentialPriceAction,sentimentScore,const DeepCollectionEquality().hash(_history));
+int get hashCode => Object.hash(runtimeType,title,l,const DeepCollectionEquality().hash(sentiment),img,takeaway,ticker,name,price,change,const DeepCollectionEquality().hash(analysis),explanation,horizon,const DeepCollectionEquality().hash(_catalysts),const DeepCollectionEquality().hash(_risks),potentialPriceAction,sentimentScore,const DeepCollectionEquality().hash(_history));
 
 @override
 String toString() {
@@ -858,7 +860,7 @@ abstract mixin class _$BriefingItemCopyWith<$Res> implements $BriefingItemCopyWi
   factory _$BriefingItemCopyWith(_BriefingItem value, $Res Function(_BriefingItem) _then) = __$BriefingItemCopyWithImpl;
 @override @useResult
 $Res call({
- String? title, String? l, dynamic sentiment, String? img, String? takeaway, String? ticker, String? name, String? price, String? change, String? analysis, String? explanation, String? horizon, List<String>? catalysts, List<String>? risks,@JsonKey(name: 'potential_price_action') String? potentialPriceAction,@JsonKey(name: 'sentiment_score') double? sentimentScore, List<double>? history
+ String? title, String? l, dynamic sentiment, String? img, String? takeaway, String? ticker, String? name, String? price, String? change, dynamic analysis, String? explanation, String? horizon, List<String>? catalysts, List<String>? risks,@JsonKey(name: 'potential_price_action') String? potentialPriceAction,@JsonKey(name: 'sentiment_score') double? sentimentScore, List<double>? history
 });
 
 
@@ -887,7 +889,7 @@ as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to
 as String?,price: freezed == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as String?,change: freezed == change ? _self.change : change // ignore: cast_nullable_to_non_nullable
 as String?,analysis: freezed == analysis ? _self.analysis : analysis // ignore: cast_nullable_to_non_nullable
-as String?,explanation: freezed == explanation ? _self.explanation : explanation // ignore: cast_nullable_to_non_nullable
+as dynamic,explanation: freezed == explanation ? _self.explanation : explanation // ignore: cast_nullable_to_non_nullable
 as String?,horizon: freezed == horizon ? _self.horizon : horizon // ignore: cast_nullable_to_non_nullable
 as String?,catalysts: freezed == catalysts ? _self._catalysts : catalysts // ignore: cast_nullable_to_non_nullable
 as List<String>?,risks: freezed == risks ? _self._risks : risks // ignore: cast_nullable_to_non_nullable

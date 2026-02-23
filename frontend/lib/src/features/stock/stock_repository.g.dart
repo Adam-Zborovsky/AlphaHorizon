@@ -68,7 +68,7 @@ final class StockRepositoryProvider
   StockRepository create() => StockRepository();
 }
 
-String _$stockRepositoryHash() => r'a50d6a525f4c7aa5351f5cad1b343cb3b68a5112';
+String _$stockRepositoryHash() => r'883a3dee1508d4cce226718dac09a95779d47c37';
 
 abstract class _$StockRepository extends $AsyncNotifier<List<StockData>> {
   FutureOr<List<StockData>> build();

@@ -51,7 +51,7 @@ _BriefingItem _$BriefingItemFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String?,
       price: json['price'] as String?,
       change: json['change'] as String?,
-      analysis: json['analysis'] as String?,
+      analysis: json['analysis'],
       explanation: json['explanation'] as String?,
       horizon: json['horizon'] as String?,
       catalysts: (json['catalysts'] as List<dynamic>?)

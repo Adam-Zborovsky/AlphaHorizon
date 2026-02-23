@@ -5,7 +5,9 @@
       "parameters": {
         "rule": {
           "interval": [
-            {}
+            {
+              "triggerAtHour": 6
+            }
           ]
         }
       },
@@ -14,23 +16,8 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
-        90768,
-        2000
-      ]
-    },
-    {
-      "parameters": {
-        "content": "### Expected Web Behavior\n* **Real-time Updates**: Reflect new data without refresh.\n* **Sentiment Mapping**: \n  - score > 0.3: Kinetic Green\n  - score < -0.3: Warning Red\n  - Otherwise: Neutral Cyan\n* **Config Sync**: Toggles should update `isEnabled` on the backend.\n\n### Expected Webhook Behavior\n* **Validation**: Valid JSON with briefing structure.\n* **Security**: Webhook ID in URL acts as secret.\n* **Responses**:\n  - 201: Success\n  - 422: Disabled\n  - 404: Not Found",
-        "height": 400,
-        "width": 500
-      },
-      "id": "573d1ca7-193c-428b-9e2a-5af9258a64ba",
-      "name": "Documentation",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        90096,
-        1520
+        90112,
+        1664
       ]
     },
     {
@@ -42,8 +29,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        91296,
-        2080
+        90640,
+        1744
       ]
     },
     {
@@ -56,8 +43,8 @@
       "type": "n8n-nodes-base.itemLists",
       "typeVersion": 3,
       "position": [
-        91456,
-        1936
+        90800,
+        1600
       ]
     },
     {
@@ -79,8 +66,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        91632,
-        1936
+        90976,
+        1600
       ]
     },
     {
@@ -93,8 +80,8 @@
       "type": "n8n-nodes-base.rssFeedRead",
       "typeVersion": 1,
       "position": [
-        91456,
-        2208
+        90800,
+        1872
       ]
     },
     {
@@ -106,8 +93,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        91792,
-        1936
+        91136,
+        1600
       ],
       "executeOnce": false
     },
@@ -120,8 +107,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        91744,
-        2208
+        91088,
+        1872
       ],
       "executeOnce": false
     },
@@ -136,8 +123,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2.1,
       "position": [
-        91984,
-        2112
+        91328,
+        1776
       ]
     },
     {
@@ -149,22 +136,22 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        92192,
-        2112
+        91536,
+        1776
       ],
       "executeOnce": false
     },
     {
       "parameters": {
-        "command": "={{ $json.cmd_news }}"
+        "command": "={{ $('Data Pre-processor').first().json.cmd_news }}"
       },
       "id": "961884c8-57dc-4fd4-9525-7f5164a0852c",
       "name": "Agent: News Intel",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
       "position": [
-        92384,
-        1968
+        91888,
+        1536
       ],
       "credentials": {
         "sshPassword": {
@@ -175,15 +162,15 @@
     },
     {
       "parameters": {
-        "command": "={{ $json.cmd_market }}"
+        "command": "={{ $('Data Pre-processor').first().json.cmd_market }}"
       },
       "id": "7313e217-8225-406b-a8f6-e04aa00683a5",
       "name": "Agent: Market Analyst",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
       "position": [
-        92384,
-        2112
+        91888,
+        1776
       ],
       "credentials": {
         "sshPassword": {
@@ -194,15 +181,15 @@
     },
     {
       "parameters": {
-        "command": "={{ $json.cmd_macro }}"
+        "command": "={{$('Data Pre-processor').first().json.cmd_macro}}\n"
       },
       "id": "abccdeea-2b5d-4ebb-81d1-345c4fd2eb41",
       "name": "Agent: Opportunity Scout",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
       "position": [
-        92384,
-        2256
+        91888,
+        2016
       ],
       "credentials": {
         "sshPassword": {
@@ -222,8 +209,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2.1,
       "position": [
-        92560,
-        2032
+        92352,
+        1632
       ]
     },
     {
@@ -237,8 +224,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2.1,
       "position": [
-        92736,
-        2112
+        92544,
+        1776
       ]
     },
     {
@@ -250,22 +237,22 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        92928,
-        2112
+        92736,
+        1776
       ],
       "executeOnce": false
     },
     {
       "parameters": {
-        "command": "={{ $json.cmd_architect }}"
+        "command": "={{ $('Aggregate Agent Results').item.json.cmd_architect }}"
       },
       "id": "6de5c251-4fdb-44c9-ae57-7299c10597b0",
       "name": "Agent: Lead Architect",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
       "position": [
-        93120,
-        2112
+        92928,
+        1776
       ],
       "credentials": {
         "sshPassword": {
@@ -307,8 +294,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        93296,
-        2112
+        93264,
+        1760
       ]
     },
     {
@@ -322,8 +309,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        90768,
-        2192
+        90112,
+        1856
       ],
       "webhookId": "89d64947-6f55-4f49-949d-3b44ed7058d2"
     },
@@ -337,8 +324,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        90976,
-        2080
+        90320,
+        1744
       ]
     },
     {
@@ -350,8 +337,8 @@
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
       "position": [
-        91152,
-        2080
+        90496,
+        1744
       ],
       "credentials": {
         "sshPassword": {
@@ -359,9 +346,170 @@
           "name": "SSH Password account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2c51d517-8b00-4834-ae62-45a6343e1d33",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        92048,
+        2016
+      ],
+      "id": "b67b801b-f872-48dd-9eca-6f50b67d79e5",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2c51d517-8b00-4834-ae62-45a6343e1d33",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        93088,
+        1776
+      ],
+      "id": "74313609-28a4-4137-a6f9-05595b6f5a33",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2c51d517-8b00-4834-ae62-45a6343e1d33",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        92048,
+        1776
+      ],
+      "id": "0c5b9dc0-fc81-4848-b798-9ccdeeb66b22",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2c51d517-8b00-4834-ae62-45a6343e1d33",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        92048,
+        1536
+      ],
+      "id": "39a4aaa2-eb6f-4e10-a3f5-666e72f46632",
+      "name": "If4"
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2026-02-23T21:08:11.602+00:00",
+          "Readable date": "February 23rd 2026, 9:08:11 pm",
+          "Readable time": "9:08:11 pm",
+          "Day of week": "Monday",
+          "Year": "2026",
+          "Month": "February",
+          "Day of month": "23",
+          "Hour": "21",
+          "Minute": "08",
+          "Second": "11",
+          "Timezone": "UTC (UTC+00:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "connections": {
     "Webhook Trigger": {
       "main": [
@@ -514,7 +662,7 @@
       "main": [
         [
           {
-            "node": "Merge Agents 1",
+            "node": "If4",
             "type": "main",
             "index": 0
           }
@@ -525,9 +673,9 @@
       "main": [
         [
           {
-            "node": "Merge Agents 1",
+            "node": "If",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -536,9 +684,9 @@
       "main": [
         [
           {
-            "node": "Merge Agents 2",
+            "node": "If2",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -580,7 +728,79 @@
       "main": [
         [
           {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Merge Agents 2",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Agent: Opportunity Scout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
             "node": "POST Briefing to Web",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent: Lead Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Merge Agents 1",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Agent: Market Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Merge Agents 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent: News Intel",
             "type": "main",
             "index": 0
           }
@@ -597,7 +817,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 25
   },
-  "versionId": "39d7c9e4-1615-46c1-a1c9-8dd354b64ca2",
+  "versionId": "d60c077f-be3d-4d79-8dab-a0a11e086567",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "462f72c1cb99079f620d4944d8321993a68403a9c985b9412cdd835b5280d81a"

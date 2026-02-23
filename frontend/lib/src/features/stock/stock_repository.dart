@@ -50,26 +50,29 @@ class StockRepository extends _$StockRepository {
           
           // Use sentiment score or fallback to sentiment string/double
           final double sentiment = item.sentimentScore ?? 
-              (item.sentiment is double ? item.sentiment as double : 0.0);
+              (item.sentiment is double ? item.sentiment as double : 
+               (item.sentiment is String ? double.tryParse(item.sentiment as String) ?? 0.0 : 0.0));
           
           // Use history from backend if available, otherwise simulate
-          final List<double> history = item.history ?? _generateHistory(initialPrice, change, sentiment, random, isMarketClosed);
+          final List<double> history = item.history ?? (initialPrice > 0 ? _generateHistory(initialPrice, change, sentiment, random, isMarketClosed) : []);
 
           // If price is missing from direct field but present in history, use the latest point
-          final double price = initialPrice > 0 ? initialPrice : (history.isNotEmpty ? history.last : 100.0);
+          final double price = initialPrice > 0 ? initialPrice : (history.isNotEmpty ? history.last : 0.0);
 
-          stocks.add(StockData(
-            ticker: item.ticker!,
-            name: item.name ?? item.ticker!,
-            currentPrice: price,
-            changePercent: change,
-            history: history,
-            sentiment: sentiment,
-            analysis: item.analysis,
-            catalysts: item.catalysts,
-            risks: item.risks,
-            potentialPriceAction: item.potentialPriceAction,
-          ));
+          if (price > 0) {
+            stocks.add(StockData(
+              ticker: item.ticker!,
+              name: item.name ?? item.ticker!,
+              currentPrice: price,
+              changePercent: change,
+              history: history,
+              sentiment: sentiment,
+              analysis: item.analysis,
+              catalysts: item.catalysts,
+              risks: item.risks,
+              potentialPriceAction: item.potentialPriceAction,
+            ));
+          }
         }
       }
     }

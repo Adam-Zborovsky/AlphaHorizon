@@ -37,7 +37,7 @@ abstract class BriefingItem with _$BriefingItem {
     String? name,
     String? price,
     String? change,
-    String? analysis,
+    dynamic analysis, // Changed to dynamic to handle both String and Map
     String? explanation,
     String? horizon,
     // New fields from market_analysis

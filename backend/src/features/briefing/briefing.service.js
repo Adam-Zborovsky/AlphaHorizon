@@ -102,11 +102,12 @@ class BriefingService {
         obj.forEach(item => enrichWithHistory(item));
       } else {
         if (obj.ticker && (obj.price || obj.sentiment_score || obj.sentiment)) {
-          const price = parseFloat(String(obj.price || '0').replace(/[^\d.]/g, '')) || 100.0;
+          const rawPrice = String(obj.price || '0').replace(/[^\d.]/g, '');
+          const price = parseFloat(rawPrice) || 0;
           const change = parseFloat(String(obj.change || '0').replace(/[^\d.+-]/g, '')) || 0.0;
           const sentiment = parseFloat(obj.sentiment_score || obj.sentiment || 0);
           
-          if (!obj.history) {
+          if (!obj.history && price > 0) {
             obj.history = this.generateHistory(price, change, sentiment);
           }
         }
