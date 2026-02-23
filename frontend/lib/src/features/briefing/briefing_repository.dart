@@ -109,10 +109,44 @@ class BriefingRepository extends _$BriefingRepository {
                   if (value is List) {
                     try {
                       final String categoryName = _formatCategory(key);
+                      final List<BriefingItem> items = value.map((i) => BriefingItem.fromJson(i as Map<String, dynamic>)).toList();
+                      
+                      // Calculate average sentiment for the category
+                      double totalSentiment = 0;
+                      int count = 0;
+                      for (final item in items) {
+                        final dynamic s = item.sentiment ?? item.sentimentScore;
+                        if (s is num) {
+                          totalSentiment += s.toDouble();
+                          count++;
+                        } else if (s is String) {
+                          final lowerS = s.toLowerCase();
+                          double? parsed = double.tryParse(s);
+                          if (parsed != null) {
+                            totalSentiment += parsed;
+                            count++;
+                          } else {
+                            // Map descriptive strings to values
+                            if (lowerS.contains('very bullish') || lowerS.contains('strong buy')) {
+                              totalSentiment += 0.9; count++;
+                            } else if (lowerS.contains('bullish') || lowerS.contains('buy')) {
+                              totalSentiment += 0.7; count++;
+                            } else if (lowerS.contains('neutral') || lowerS.contains('hold')) {
+                              totalSentiment += 0.0; count++;
+                            } else if (lowerS.contains('bearish') || lowerS.contains('sell')) {
+                              totalSentiment += -0.7; count++;
+                            } else if (lowerS.contains('very bearish') || lowerS.contains('strong sell')) {
+                              totalSentiment += -0.9; count++;
+                            }
+                          }
+                        }
+                      }
+                      final double avgSentiment = count > 0 ? totalSentiment / count : 0.0;
+
                       categoriesMap[categoryName] = CategoryData(
-                        sentimentScore: 0.0,
+                        sentimentScore: avgSentiment,
                         summary: 'Strategic analysis for $categoryName.',
-                        items: value.map((i) => BriefingItem.fromJson(i as Map<String, dynamic>)).toList(),
+                        items: items,
                       );
                     } catch (e) {
                       debugPrint('BriefingRepository: Failed to parse nested category $key in $containerKey: $e');
@@ -130,23 +164,56 @@ class BriefingRepository extends _$BriefingRepository {
               final dynamic container = decodedContent[containerKey];
               if (container is List) {
                 try {
-                  categoriesMap['Market Analysis'] = CategoryData(
-                    sentimentScore: 0.8,
-                    summary: 'Deep dive analysis of key tickers at technical and fundamental inflection points.',
-                    items: container.map((i) {
-                      final map = i as Map<String, dynamic>;
-                      // Flatten 'analysis' if it's nested (from market_analyst)
-                      if (map.containsKey('analysis') && map['analysis'] is Map<String, dynamic>) {
-                        final analysis = map['analysis'] as Map<String, dynamic>;
-                        final String? outlook = analysis['outlook']?.toString();
-                        return BriefingItem.fromJson({
-                          ...map, 
-                          ...analysis,
-                          if (outlook != null) 'takeaway': outlook,
-                        });
+                  final List<BriefingItem> items = container.map((i) {
+                    final map = i as Map<String, dynamic>;
+                    // Flatten 'analysis' if it's nested (from market_analyst)
+                    if (map.containsKey('analysis') && map['analysis'] is Map<String, dynamic>) {
+                      final analysis = map['analysis'] as Map<String, dynamic>;
+                      final String? outlook = analysis['outlook']?.toString();
+                      return BriefingItem.fromJson({
+                        ...map, 
+                        ...analysis,
+                        if (outlook != null) 'takeaway': outlook,
+                      });
+                    }
+                    return BriefingItem.fromJson(map);
+                  }).toList();
+
+                  // Calculate average sentiment
+                  double totalSentiment = 0;
+                  int count = 0;
+                  for (final item in items) {
+                    final dynamic s = item.sentimentScore ?? item.sentiment;
+                    if (s is num) {
+                      totalSentiment += s.toDouble();
+                      count++;
+                    } else if (s is String) {
+                      final lowerS = s.toLowerCase();
+                      final parsed = double.tryParse(s);
+                      if (parsed != null) {
+                        totalSentiment += parsed;
+                        count++;
+                      } else {
+                        if (lowerS.contains('very bullish') || lowerS.contains('strong buy')) {
+                          totalSentiment += 0.9; count++;
+                        } else if (lowerS.contains('bullish') || lowerS.contains('buy')) {
+                          totalSentiment += 0.7; count++;
+                        } else if (lowerS.contains('neutral') || lowerS.contains('hold')) {
+                          totalSentiment += 0.0; count++;
+                        } else if (lowerS.contains('bearish') || lowerS.contains('sell')) {
+                          totalSentiment += -0.7; count++;
+                        } else if (lowerS.contains('very bearish') || lowerS.contains('strong sell')) {
+                          totalSentiment += -0.9; count++;
+                        }
                       }
-                      return BriefingItem.fromJson(map);
-                    }).toList(),
+                    }
+                  }
+                  final double avgSentiment = count > 0 ? totalSentiment / count : 0.8;
+
+                  categoriesMap['Market Analysis'] = CategoryData(
+                    sentimentScore: avgSentiment,
+                    summary: 'Deep dive analysis of key tickers at technical and fundamental inflection points.',
+                    items: items,
                   );
                 } catch (e) {
                   debugPrint('BriefingRepository: Failed to parse $containerKey: $e');
@@ -162,10 +229,43 @@ class BriefingRepository extends _$BriefingRepository {
               final dynamic container = decodedContent[containerKey];
               if (container is List) {
                 try {
+                  final List<BriefingItem> items = container.map((i) => BriefingItem.fromJson(i as Map<String, dynamic>)).toList();
+                  
+                  // Calculate average sentiment
+                  double totalSentiment = 0;
+                  int count = 0;
+                  for (final item in items) {
+                    final dynamic s = item.sentimentScore ?? item.sentiment;
+                    if (s is num) {
+                      totalSentiment += s.toDouble();
+                      count++;
+                    } else if (s is String) {
+                      final lowerS = s.toLowerCase();
+                      final parsed = double.tryParse(s);
+                      if (parsed != null) {
+                        totalSentiment += parsed;
+                        count++;
+                      } else {
+                        if (lowerS.contains('very bullish') || lowerS.contains('strong buy')) {
+                          totalSentiment += 0.9; count++;
+                        } else if (lowerS.contains('bullish') || lowerS.contains('buy')) {
+                          totalSentiment += 0.7; count++;
+                        } else if (lowerS.contains('neutral') || lowerS.contains('hold')) {
+                          totalSentiment += 0.0; count++;
+                        } else if (lowerS.contains('bearish') || lowerS.contains('sell')) {
+                          totalSentiment += -0.7; count++;
+                        } else if (lowerS.contains('very bearish') || lowerS.contains('strong sell')) {
+                          totalSentiment += -0.9; count++;
+                        }
+                      }
+                    }
+                  }
+                  final double avgSentiment = count > 0 ? totalSentiment / count : 0.9;
+
                   categoriesMap['Alpha Opportunities'] = CategoryData(
-                    sentimentScore: 0.9,
+                    sentimentScore: avgSentiment,
                     summary: 'High-signal tactical opportunities across diverse market sectors.',
-                    items: container.map((i) => BriefingItem.fromJson(i as Map<String, dynamic>)).toList(),
+                    items: items,
                   );
                 } catch (e) {
                   debugPrint('BriefingRepository: Failed to parse $containerKey: $e');

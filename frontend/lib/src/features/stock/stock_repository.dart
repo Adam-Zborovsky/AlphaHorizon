@@ -29,57 +29,87 @@ class StockRepository extends _$StockRepository {
   @override
   Future<List<StockData>> build() async {
     final briefing = await ref.watch(briefingRepositoryProvider.future);
+    final config = await ref.watch(briefingConfigRepositoryProvider.future);
     
     final List<StockData> stocks = [];
     final random = Random();
+    final seen = <String>{};
     
     // Check if it's the weekend or Monday morning before market open (9:30 AM ET / 14:30 UTC)
     final now = DateTime.now().toUtc();
     bool isMarketClosed = now.weekday == DateTime.saturday || now.weekday == DateTime.sunday;
     
-    // Monday pre-market check (before 14:30 UTC)
     if (now.weekday == DateTime.monday && (now.hour < 14 || (now.hour == 14 && now.minute < 30))) {
       isMarketClosed = true;
     }
 
+    // 1. First, process items found in the briefing
     for (final category in briefing.data.values) {
       for (final item in category.items) {
         if (item.ticker != null) {
+          final ticker = item.ticker!.toUpperCase();
+          if (seen.contains(ticker)) continue;
+
           final double initialPrice = double.tryParse(item.price?.replaceAll(RegExp(r'[^\d.]'), '') ?? '0') ?? 0.0;
           final double change = double.tryParse(item.change?.replaceAll(RegExp(r'[^\d.+-]'), '') ?? '0') ?? 0.0;
           
-          // Use sentiment score or fallback to sentiment string/double
           final double sentiment = item.sentimentScore ?? 
-              (item.sentiment is double ? item.sentiment as double : 
-               (item.sentiment is String ? double.tryParse(item.sentiment as String) ?? 0.0 : 0.0));
+              (() {
+                final s = item.sentiment;
+                if (s is num) return s.toDouble();
+                if (s is String) {
+                  final lowerS = s.toLowerCase();
+                  final parsed = double.tryParse(s);
+                  if (parsed != null) return parsed;
+                  if (lowerS.contains('very bullish') || lowerS.contains('strong buy')) return 0.9;
+                  if (lowerS.contains('bullish') || lowerS.contains('buy')) return 0.7;
+                  if (lowerS.contains('neutral') || lowerS.contains('hold')) return 0.0;
+                  if (lowerS.contains('bearish') || lowerS.contains('sell')) return -0.7;
+                  if (lowerS.contains('very bearish') || lowerS.contains('strong sell')) return -0.9;
+                }
+                return 0.0;
+              })();
           
-          // Use history from backend if available, otherwise simulate
-          final List<double> history = item.history ?? (initialPrice > 0 ? _generateHistory(initialPrice, change, sentiment, random, isMarketClosed) : []);
+          final List<double> history = item.history ?? _generateHistory(initialPrice > 0 ? initialPrice : 100.0, change, sentiment, random, isMarketClosed);
+          final double price = initialPrice > 0 ? initialPrice : (history.isNotEmpty ? history.last : 100.0);
 
-          // If price is missing from direct field but present in history, use the latest point
-          final double price = initialPrice > 0 ? initialPrice : (history.isNotEmpty ? history.last : 0.0);
-
-          if (price > 0) {
-            stocks.add(StockData(
-              ticker: item.ticker!,
-              name: item.name ?? item.ticker!,
-              currentPrice: price,
-              changePercent: change,
-              history: history,
-              sentiment: sentiment,
-              analysis: item.analysis,
-              catalysts: item.catalysts,
-              risks: item.risks,
-              potentialPriceAction: item.potentialPriceAction,
-            ));
-          }
+          stocks.add(StockData(
+            ticker: ticker,
+            name: item.name ?? ticker,
+            currentPrice: price,
+            changePercent: change,
+            history: history,
+            sentiment: sentiment,
+            analysis: item.analysis is String ? item.analysis : (item.analysis is Map ? item.takeaway : null),
+            catalysts: item.catalysts,
+            risks: item.risks,
+            potentialPriceAction: item.potentialPriceAction,
+          ));
+          seen.add(ticker);
         }
       }
     }
     
-    // Remove duplicates by ticker
-    final seen = <String>{};
-    return stocks.where((s) => seen.add(s.ticker)).toList();
+    // 2. Add remaining tickers from the watchlist that weren't in the briefing
+    for (final ticker in config.tickers) {
+      final upperTicker = ticker.toUpperCase();
+      if (!seen.contains(upperTicker)) {
+        final double price = 100.0; // Default placeholder
+        final List<double> history = _generateHistory(price, 0.0, 0.0, random, isMarketClosed);
+        
+        stocks.add(StockData(
+          ticker: upperTicker,
+          name: upperTicker,
+          currentPrice: price,
+          changePercent: 0.0,
+          history: history,
+          sentiment: 0.0,
+        ));
+        seen.add(upperTicker);
+      }
+    }
+
+    return stocks;
   }
 
   List<double> _generateHistory(double currentPrice, double changePercent, double sentiment, Random random, bool isWeekend) {
