@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../briefing/briefing_repository.dart';
+import '../briefing/briefing_config_repository.dart';
 
 part 'stock_repository.freezed.dart';
 part 'stock_repository.g.dart';
@@ -26,6 +27,19 @@ abstract class StockData with _$StockData {
 
 @riverpod
 class StockRepository extends _$StockRepository {
+  double _extractPrice(String? text) {
+    if (text == null || text.isEmpty) return 0.0;
+    // Look for patterns like "$420", "420.00", "at 420"
+    final regex = RegExp(r'\$(\d+(?:\.\d+)?)|\b(\d+(?:\.\d+)?)\b');
+    final matches = regex.allMatches(text);
+    if (matches.isNotEmpty) {
+      // Return the first numeric value found that looks like a price
+      final match = matches.first;
+      return double.tryParse(match.group(1) ?? match.group(2) ?? '0') ?? 0.0;
+    }
+    return 0.0;
+  }
+
   @override
   Future<List<StockData>> build() async {
     final briefing = await ref.watch(briefingRepositoryProvider.future);
@@ -50,7 +64,14 @@ class StockRepository extends _$StockRepository {
           final ticker = item.ticker!.toUpperCase();
           if (seen.contains(ticker)) continue;
 
-          final double initialPrice = double.tryParse(item.price?.replaceAll(RegExp(r'[^\d.]'), '') ?? '0') ?? 0.0;
+          // Try to get price from direct field, then fallback to extracting from analysis text
+          double initialPrice = double.tryParse(item.price?.replaceAll(RegExp(r'[^\d.]'), '') ?? '0') ?? 0.0;
+          if (initialPrice == 0) {
+            initialPrice = _extractPrice(item.potentialPriceAction);
+            if (initialPrice == 0) initialPrice = _extractPrice(item.explanation);
+            if (initialPrice == 0) initialPrice = _extractPrice(item.analysis?.toString());
+          }
+
           final double change = double.tryParse(item.change?.replaceAll(RegExp(r'[^\d.+-]'), '') ?? '0') ?? 0.0;
           
           final double sentiment = item.sentimentScore ?? 

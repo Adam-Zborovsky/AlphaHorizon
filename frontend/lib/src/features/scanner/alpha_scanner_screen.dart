@@ -50,7 +50,8 @@ class AlphaScannerScreen extends ConsumerWidget {
                     const SizedBox(height: 15),
                     briefingAsync.when(
                       data: (briefing) {
-                        final opportunities = briefing.data['Opportunities']?.items ?? [];
+                        // Match the name used in BriefingRepository
+                        final opportunities = briefing.data['Alpha Opportunities']?.items ?? [];
                         if (opportunities.isEmpty) {
                           return const _EmptyScannerState(message: 'No new opportunities scouted.');
                         }
@@ -96,8 +97,8 @@ class AlphaScannerScreen extends ConsumerWidget {
                       data: (briefing) {
                         final List<BriefingItem> catalysts = [];
                         briefing.data.forEach((key, cat) {
-                          if (key != 'Opportunities') {
-                            catalysts.addAll(cat.items.where((i) => i.takeaway != null));
+                          if (key != 'Alpha Opportunities') {
+                            catalysts.addAll(cat.items.where((i) => i.takeaway != null || i.title != null));
                           }
                         });
                         
