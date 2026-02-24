@@ -284,6 +284,14 @@
             {
               "name": "data",
               "value": "={{ $json.stdout }}"
+            },
+            {
+              "name": "raw_agents",
+              "value": "={{ $('Aggregate Agent Results').first().json.agent_results }}"
+            },
+            {
+              "name": "raw_market_data",
+              "value": "={{ $('Aggregate Agent Results').first().json.market_data }}"
             }
           ]
         },

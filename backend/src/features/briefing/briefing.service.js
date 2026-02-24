@@ -1,5 +1,8 @@
+const fs = require('fs');
+const path = require('path');
 const Briefing = require('./briefing.model');
 const BriefingConfig = require('./briefing_config.model');
+const marketUtil = require('../../utils/market');
 
 class BriefingService {
   /**
@@ -119,30 +122,27 @@ class BriefingService {
 
     enrichWithHistory(parsedData);
 
+    // Extract ALL tickers for factual data compilation
+    const foundTickers = new Set();
+    const findTickers = (obj) => {
+      if (!obj || typeof obj !== 'object') return;
+      if (Array.isArray(obj)) {
+        obj.forEach(item => findTickers(item));
+      } else {
+        if (obj.ticker && typeof obj.ticker === 'string') {
+          foundTickers.add(obj.ticker.toUpperCase());
+        }
+        Object.values(obj).forEach(val => {
+          if (typeof val === 'object') findTickers(val);
+        });
+      }
+    };
+    findTickers(parsedData);
+
     // VALIDATION: Check if the data is connected to our configuration
     const config = await this.getConfig();
     if (config && config.tickers && config.tickers.length > 0 && typeof parsedData === 'object' && parsedData !== null) {
       const requestedTickers = config.tickers.map(t => t.toUpperCase());
-      
-      // Extract all tickers mentioned in the briefing
-      const foundTickers = new Set();
-      
-      const findTickers = (obj) => {
-        if (!obj || typeof obj !== 'object') return;
-        
-        if (Array.isArray(obj)) {
-          obj.forEach(item => findTickers(item));
-        } else {
-          if (obj.ticker && typeof obj.ticker === 'string') {
-            foundTickers.add(obj.ticker.toUpperCase());
-          }
-          Object.values(obj).forEach(val => {
-            if (typeof val === 'object') findTickers(val);
-          });
-        }
-      };
-      
-      findTickers(parsedData);
       
       // Check if there is any overlap
       const hasOverlap = requestedTickers.some(t => foundTickers.has(t));
@@ -162,9 +162,27 @@ class BriefingService {
 
       if (foundTickers.size === 0 && requestedTickers.length > 0) {
         console.warn('⚠️ BriefingService: No tickers found in briefing data. Checking if this is expected...');
-        // If we expect tickers but found none, it might be a partial failure or very broad news
-        // We'll allow it but log it, unless it's completely empty
       }
+    }
+
+    // COMPILE FINAL DATA AND SAVE TO FILE
+    try {
+      console.log(`BriefingService: Compiling factual market data for ${foundTickers.size} tickers...`);
+      const factualMarketData = await marketUtil.fetchStockData(Array.from(foundTickers));
+      
+      const compiledData = {
+        timestamp: new Date().toISOString(),
+        briefing: parsedData,
+        factual_market_data: factualMarketData.filter(d => d !== null),
+        agent_raw_payload: data // Keep the original payload just in case it had more info
+      };
+
+      // Save to root directory as requested
+      const rootPath = path.resolve(__dirname, '../../../../compiled_briefing.json');
+      fs.writeFileSync(rootPath, JSON.stringify(compiledData, null, 2));
+      console.log(`BriefingService: Compiled data saved to ${rootPath}`);
+    } catch (err) {
+      console.error('BriefingService: Failed to compile or save data file:', err.message);
     }
 
     const briefing = new Briefing({
