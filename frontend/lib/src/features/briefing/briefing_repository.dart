@@ -61,6 +61,39 @@ class BriefingRepository extends _$BriefingRepository {
         result[field] = result[field].toString();
       }
     }
+
+    // Ensure catalysts and risks are List<String>
+    final listStringFields = ['catalysts', 'risks'];
+    for (final field in listStringFields) {
+      if (result[field] != null) {
+        if (result[field] is List) {
+          result[field] = (result[field] as List).map((e) => e.toString()).toList();
+        } else if (result[field] is String) {
+          // If it's a string, try to split it or put it in a list
+          final String val = result[field];
+          if (val.contains(',')) {
+            result[field] = val.split(',').map((e) => e.trim()).toList();
+          } else {
+            result[field] = [val];
+          }
+        } else {
+          result[field] = [result[field].toString()];
+        }
+      }
+    }
+
+    // Ensure history is List<double>
+    if (result['history'] != null) {
+      if (result['history'] is List) {
+        result['history'] = (result['history'] as List).map((e) {
+          if (e is num) return e.toDouble();
+          if (e is String) return double.tryParse(e) ?? 0.0;
+          return 0.0;
+        }).toList();
+      } else {
+        result.remove('history'); // Remove if it's not a list to avoid crash
+      }
+    }
     
     return result;
   }
