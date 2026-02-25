@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/glass_card.dart';
 import '../stock/stock_repository.dart';
+import '../onboarding/onboarding_wrapper.dart';
+import '../onboarding/tutorial_keys.dart';
 
 class MarketNexusScreen extends ConsumerWidget {
   const MarketNexusScreen({super.key});
@@ -13,30 +15,33 @@ class MarketNexusScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stocksAsync = ref.watch(stockRepositoryProvider);
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0x11FFB800),
-              AppTheme.obsidian,
+    return OnboardingWrapper(
+      step: OnboardingStep.nexus,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0x11FFB800),
+                AppTheme.obsidian,
+              ],
+            ),
+          ),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              const _NexusHeader(),
+              const _NexusToolbar(),
+              stocksAsync.when(
+                data: (stocks) => _NexusList(stocks: stocks),
+                loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+                error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 120)),
             ],
           ),
-        ),
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            const _NexusHeader(),
-            const _NexusToolbar(),
-            stocksAsync.when(
-              data: (stocks) => _NexusList(stocks: stocks),
-              loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-              error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 120)),
-          ],
         ),
       ),
     );
@@ -83,6 +88,7 @@ class _NexusToolbar extends StatelessWidget {
           children: [
             Expanded(
               child: GestureDetector(
+                key: TutorialKeys.nexusManage,
                 onTap: () => context.push('/manage-watchlist'),
                 child: GlassCard(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -237,7 +243,6 @@ class _NexusSparkline extends StatelessWidget {
     final maxVal = data.reduce((a, b) => a > b ? a : b);
     final range = maxVal - minVal;
     
-    // Add 10% padding to the range to make the chart look tactical and not hit the edges
     final padding = range == 0 ? 1.0 : range * 0.1;
 
     return LineChart(
@@ -247,7 +252,7 @@ class _NexusSparkline extends StatelessWidget {
         gridData: const FlGridData(show: false),
         titlesData: const FlTitlesData(show: false),
         borderData: FlBorderData(show: false),
-        lineTouchData: const LineTouchData(enabled: false), // Disable tooltips for sparklines
+        lineTouchData: const LineTouchData(enabled: false),
         lineBarsData: [
           LineChartBarData(
             spots: data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList(),

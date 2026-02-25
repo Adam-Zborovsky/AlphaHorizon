@@ -6,6 +6,8 @@ import '../../core/widgets/glass_card.dart';
 import '../briefing/briefing_repository.dart';
 import '../briefing/briefing_model.dart';
 import 'saved_articles_provider.dart';
+import '../onboarding/onboarding_wrapper.dart';
+import '../onboarding/tutorial_keys.dart';
 
 class IntelligenceVaultScreen extends ConsumerStatefulWidget {
   final String? initialCategory;
@@ -38,85 +40,88 @@ class _IntelligenceVaultScreenState extends ConsumerState<IntelligenceVaultScree
   Widget build(BuildContext context) {
     final briefingAsync = ref.watch(briefingRepositoryProvider);
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0x11FFB800),
-              AppTheme.obsidian,
-            ],
-          ),
-        ),
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            const _VaultHeader(),
-            briefingAsync.when(
-              data: (briefing) {
-                // Filter categories: only show those with >= 1 items (either title or ticker), plus 'All'
-                final validCategories = briefing.data.entries
-                    .where((e) => e.value.items.where((i) => i.title != null || i.ticker != null).isNotEmpty)
-                    .map((e) => e.key)
-                    .toList();
-                
-                final categories = ['All', ...validCategories];
-                
-                // If our selected category is not in the list (but exists in data), we should still show it if it was explicitly selected
-                if (_selectedCategory != 'All' && !validCategories.contains(_selectedCategory) && briefing.data.containsKey(_selectedCategory)) {
-                  categories.add(_selectedCategory);
-                }
-
-                if (categories.length <= 1) return const SliverToBoxAdapter(child: SizedBox.shrink());
-
-                return SliverToBoxAdapter(
-                  child: _CategoryPills(
-                    categories: categories,
-                    selectedCategory: _selectedCategory,
-                    onCategorySelected: (category) {
-                      setState(() {
-                        _selectedCategory = category;
-                      });
-                    },
-                  ),
-                );
-              },
-              loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
-              error: (e, s) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+    return OnboardingWrapper(
+      step: OnboardingStep.vault,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0x11FFB800),
+                AppTheme.obsidian,
+              ],
             ),
-            briefingAsync.when(
-              data: (briefing) => _NewsList(
-                briefing: briefing,
-                selectedCategory: _selectedCategory,
+          ),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              const _VaultHeader(),
+              briefingAsync.when(
+                data: (briefing) {
+                  final validCategories = briefing.data.entries
+                      .where((e) => e.value.items.where((i) => i.title != null || i.ticker != null).isNotEmpty)
+                      .map((e) => e.key)
+                      .toList();
+                  
+                  final categories = ['All', ...validCategories];
+                  
+                  if (_selectedCategory != 'All' && !validCategories.contains(_selectedCategory) && briefing.data.containsKey(_selectedCategory)) {
+                    categories.add(_selectedCategory);
+                  }
+
+                  if (categories.length <= 1) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+                  return SliverToBoxAdapter(
+                    child: _CategoryPills(
+                      key: TutorialKeys.vaultFilter,
+                      categories: categories,
+                      selectedCategory: _selectedCategory,
+                      onCategorySelected: (category) {
+                        setState(() {
+                          _selectedCategory = category;
+                        });
+                      },
+                    ),
+                  );
+                },
+                loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                error: (e, s) => const SliverToBoxAdapter(child: SizedBox.shrink()),
               ),
-              loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-              error: (err, stack) => SliverFillRemaining(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(40),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.wifi_off_rounded, color: Colors.white24, size: 48),
-                        const SizedBox(height: 16),
-                        Text('Intel feed offline', style: Theme.of(context).textTheme.titleMedium),
-                        const SizedBox(height: 8),
-                        Text(err.toString(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white24, fontSize: 12)),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: () => ref.invalidate(briefingRepositoryProvider),
-                          child: const Text('Reconnect'),
-                        ),
-                      ],
+              briefingAsync.when(
+                data: (briefing) => _NewsList(
+                  key: TutorialKeys.vaultReports,
+                  briefing: briefing,
+                  selectedCategory: _selectedCategory,
+                ),
+                loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+                error: (err, stack) => SliverFillRemaining(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.wifi_off_rounded, color: Colors.white24, size: 48),
+                          const SizedBox(height: 16),
+                          Text('Intel feed offline', style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 8),
+                          Text(err.toString(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white24, fontSize: 12)),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: () => ref.invalidate(briefingRepositoryProvider),
+                            child: const Text('Reconnect'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 120)),
-          ],
+              const SliverToBoxAdapter(child: SizedBox(height: 120)),
+            ],
+          ),
         ),
       ),
     );
@@ -159,6 +164,7 @@ class _CategoryPills extends StatelessWidget {
   final Function(String) onCategorySelected;
 
   const _CategoryPills({
+    super.key,
     required this.categories,
     required this.selectedCategory,
     required this.onCategorySelected,
@@ -210,6 +216,7 @@ class _NewsList extends StatelessWidget {
   final String selectedCategory;
 
   const _NewsList({
+    super.key,
     required this.briefing,
     required this.selectedCategory,
   });
@@ -272,7 +279,6 @@ class _NewsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Handle sentiment as dynamic (score or description)
     double sentimentVal = 0.0;
     String sentimentText = '0.0 SNT';
     
@@ -284,7 +290,6 @@ class _NewsCard extends ConsumerWidget {
       sentimentText = '${sentimentVal > 0 ? "+" : ""}${sentimentVal.toStringAsFixed(1)} SNT';
     } else if (item.sentiment is String) {
       sentimentText = item.sentiment as String;
-      // Heuristic for color if it's a string
       final s = (item.sentiment as String).toLowerCase();
       if (s.contains('bullish') || s.contains('high') || s.contains('positive')) sentimentVal = 1.0;
       if (s.contains('bearish') || s.contains('low') || s.contains('negative')) sentimentVal = -1.0;
@@ -295,7 +300,6 @@ class _NewsCard extends ConsumerWidget {
     final title = item.title ?? item.name ?? item.ticker ?? "Untitled Intelligence";
     final isSaved = savedArticles.contains(title);
     
-    // Safely convert dynamic fields to String for display
     String? getDisplayString(dynamic value) {
       if (value == null) return null;
       if (value is String) return value;

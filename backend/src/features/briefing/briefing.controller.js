@@ -114,6 +114,19 @@ class BriefingController {
   }
 
   /**
+   * Search for tickers with autocomplete
+   */
+  async searchTickers(req, res, next) {
+    try {
+      const { q } = req.query;
+      const results = await briefingService.searchTickers(q);
+      res.status(200).json(results);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
    * Update full configuration
    */
   async updateConfig(req, res, next) {

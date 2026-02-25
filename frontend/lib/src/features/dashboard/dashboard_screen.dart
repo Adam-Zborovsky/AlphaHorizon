@@ -8,6 +8,8 @@ import '../../core/widgets/section_header.dart';
 import '../briefing/briefing_repository.dart';
 import '../stock/stock_repository.dart';
 import '../briefing/briefing_model.dart';
+import '../onboarding/onboarding_wrapper.dart';
+import '../onboarding/tutorial_keys.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -17,66 +19,75 @@ class DashboardScreen extends ConsumerWidget {
     final briefingAsync = ref.watch(briefingRepositoryProvider);
     final stocksAsync = ref.watch(stockRepositoryProvider);
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.topRight,
-            radius: 1.5,
-            colors: [
-              Color(0x11FFB800),
-              AppTheme.obsidian,
+    return OnboardingWrapper(
+      step: OnboardingStep.dashboard,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.topRight,
+              radius: 1.5,
+              colors: [
+                Color(0x11FFB800),
+                AppTheme.obsidian,
+              ],
+            ),
+          ),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              const _WarRoomHeader(),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverToBoxAdapter(
+                  child: briefingAsync.when(
+                    data: (briefing) => _DailyBriefingSummary(
+                      key: TutorialKeys.dashBriefing,
+                      briefing: briefing,
+                    ),
+                    loading: () => const _ShimmerCard(height: 200),
+                    error: (err, stack) => _ErrorWidget(error: err.toString()),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SectionHeader(
+                    title: 'Intelligence Pillars',
+                    onTap: () => context.go('/vault'),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 15)),
+              briefingAsync.when(
+                data: (briefing) => _IntelPillarsGrid(
+                  key: TutorialKeys.dashPillars,
+                  briefing: briefing,
+                ),
+                loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+                error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SectionHeader(
+                    title: 'Market Nexus',
+                    onTap: () => context.go('/nexus'),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 15)),
+              stocksAsync.when(
+                data: (stocks) => _MarketNexusList(stocks: stocks),
+                loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+                error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Stock error: $err', style: const TextStyle(color: Colors.white24)))),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 150)),
             ],
           ),
-        ),
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            const _WarRoomHeader(),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverToBoxAdapter(
-                child: briefingAsync.when(
-                  data: (briefing) => _DailyBriefingSummary(briefing: briefing),
-                  loading: () => const _ShimmerCard(height: 200),
-                  error: (err, stack) => _ErrorWidget(error: err.toString()),
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 30)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: SectionHeader(
-                  title: 'Intelligence Pillars',
-                  onTap: () => context.go('/vault'),
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 15)),
-            briefingAsync.when(
-              data: (briefing) => _IntelPillarsGrid(briefing: briefing),
-              loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-              error: (err, stack) => const SliverToBoxAdapter(child: SizedBox.shrink()),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 30)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: SectionHeader(
-                  title: 'Market Nexus',
-                  onTap: () => context.go('/nexus'),
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 15)),
-            stocksAsync.when(
-              data: (stocks) => _MarketNexusList(stocks: stocks),
-              loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-              error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Stock error: $err', style: const TextStyle(color: Colors.white24)))),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 150)),
-          ],
         ),
       ),
     );
@@ -148,6 +159,7 @@ class _WarRoomHeader extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(right: 20, left: 10),
           child: GestureDetector(
+            key: TutorialKeys.navProfile,
             onTap: () => context.push('/profile'),
             child: const CircleAvatar(
               radius: 16,
@@ -163,7 +175,7 @@ class _WarRoomHeader extends StatelessWidget {
 
 class _DailyBriefingSummary extends StatelessWidget {
   final BriefingData briefing;
-  const _DailyBriefingSummary({required this.briefing});
+  const _DailyBriefingSummary({super.key, required this.briefing});
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +190,6 @@ class _DailyBriefingSummary extends StatelessWidget {
       );
     }
 
-    // Try to find a category with a meaningful summary (not the default 'Direct item list')
     String? categoryName;
     CategoryData? category;
     
@@ -190,7 +201,6 @@ class _DailyBriefingSummary extends StatelessWidget {
       }
     }
     
-    // Fallback to the first one if no ideal summary found
     categoryName ??= briefing.data.keys.first;
     category ??= briefing.data.values.first;
 
@@ -298,7 +308,7 @@ class _SentimentRing extends StatelessWidget {
 
 class _IntelPillarsGrid extends StatelessWidget {
   final BriefingData briefing;
-  const _IntelPillarsGrid({required this.briefing});
+  const _IntelPillarsGrid({super.key, required this.briefing});
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +332,7 @@ class _IntelPillarsGrid extends StatelessWidget {
               child: _IntelCard(name: catName, score: catData.sentimentScore),
             );
           },
-          childCount: categories.length, // Show ALL live categories
+          childCount: categories.length,
         ),
       ),
     );

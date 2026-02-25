@@ -14,6 +14,7 @@ import 'src/features/notifications/notifications_screen.dart';
 import 'src/features/auth/login_screen.dart';
 import 'src/features/auth/auth_provider.dart';
 import 'src/core/widgets/glass_card.dart';
+import 'src/features/onboarding/tutorial_keys.dart';
 
 void main() {
   runApp(
@@ -152,21 +153,25 @@ class ScaffoldWithNavBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _NavItem(
+                key: TutorialKeys.navDash,
                 icon: Icons.dashboard_rounded, 
                 label: 'Dash', 
                 location: '/',
               ),
               _NavItem(
+                key: TutorialKeys.navVault,
                 icon: Icons.analytics_rounded, 
                 label: 'Vault', 
                 location: '/vault',
               ),
               _NavItem(
+                key: TutorialKeys.navNexus,
                 icon: Icons.show_chart_rounded, 
                 label: 'Nexus', 
                 location: '/nexus',
               ),
               _NavItem(
+                key: TutorialKeys.navScan,
                 icon: Icons.radar_rounded, 
                 label: 'Scan', 
                 location: '/scanner',
@@ -185,6 +190,7 @@ class _NavItem extends StatelessWidget {
   final String location;
 
   const _NavItem({
+    super.key,
     required this.icon, 
     required this.label, 
     required this.location,
@@ -193,7 +199,9 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final GoRouterState state = GoRouterState.of(context);
-    final bool isActive = state.fullPath == location;
+    final String matchedLocation = state.matchedLocation;
+    // Special handling for home path
+    final bool isActive = matchedLocation == location || (location == '/' && matchedLocation == '');
 
     return GestureDetector(
       onTap: () => context.go(location),

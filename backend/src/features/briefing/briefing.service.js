@@ -360,6 +360,37 @@ class BriefingService {
   }
 
   /**
+   * Search for tickers using Yahoo Finance autocomplete
+   */
+  async searchTickers(query) {
+    if (!query || query.length < 1) return [];
+
+    try {
+      const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0`;
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Yahoo Finance search returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      return (data.quotes || []).map(q => ({
+        symbol: q.symbol,
+        name: q.shortname || q.longname || q.symbol,
+        exch: q.exchDisp || q.exchange,
+        type: q.quoteType
+      }));
+    } catch (err) {
+      console.error('BriefingService: Error searching tickers:', err.message);
+      return [];
+    }
+  }
+
+  /**
    * Get historical briefings for a user
    */
   async getHistory(userId, page = 1, limit = 20) {

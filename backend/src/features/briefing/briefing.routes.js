@@ -28,6 +28,12 @@ router.get('/', briefingController.getLatest);
 router.post('/trigger', briefingController.triggerManual);
 
 /**
+ * @route GET /api/v1/briefing/search
+ * Search for tickers via autocomplete
+ */
+router.get('/search', briefingController.searchTickers);
+
+/**
  * @route GET /api/v1/briefing/config
  * Returns the current configuration (topics, tickers)
  */
