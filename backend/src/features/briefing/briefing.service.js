@@ -165,31 +165,60 @@ class BriefingService {
       }
     }
 
-    // COMPILE FINAL DATA AND SAVE TO FILE
-    try {
-      console.log(`BriefingService: Compiling factual market data for ${foundTickers.size} tickers...`);
-      const factualMarketData = await marketUtil.fetchStockData(Array.from(foundTickers));
-      
-      const compiledData = {
-        timestamp: new Date().toISOString(),
-        briefing: parsedData,
-        factual_market_data: factualMarketData.filter(d => d !== null),
-        agent_raw_payload: data // Keep the original payload just in case it had more info
-      };
-
-      // Save to root directory as requested
-      const rootPath = path.resolve(__dirname, '../../../../compiled_briefing.json');
-      fs.writeFileSync(rootPath, JSON.stringify(compiledData, null, 2));
-      console.log(`BriefingService: Compiled data saved to ${rootPath}`);
-    } catch (err) {
-      console.error('BriefingService: Failed to compile or save data file:', err.message);
-    }
-
-    const briefing = new Briefing({
-      data: parsedData, // Use the enriched parsedData
-      source: 'n8n',
-    });
-
+        // COMPILE FINAL DATA AND SAVE TO FILE
+        try {
+          console.log(`BriefingService: Compiling factual market data for ${foundTickers.size} tickers...`);
+          const factualMarketData = await marketUtil.fetchStockData(Array.from(foundTickers));
+          const validFactualData = factualMarketData.filter(d => d !== null);
+    
+          // Overwrite hallucinated data with factual data in the parsedData object
+          const updateWithFactualData = (obj) => {
+            if (!obj || typeof obj !== 'object') return;
+            if (Array.isArray(obj)) {
+              obj.forEach(item => updateWithFactualData(item));
+            } else {
+              if (obj.ticker && typeof obj.ticker === 'string') {
+                const factual = validFactualData.find(d => d.ticker.toUpperCase() === obj.ticker.toUpperCase());
+                if (factual) {
+                  // Priority: Use factual data
+                  obj.price = factual.price;
+                  obj.change = factual.change;
+                  if (!obj.name) obj.name = factual.name;
+                } else {
+                  // If ticker wasn't found in market data, it might be a hallucination or delisted
+                  console.warn(`BriefingService: No factual data for ticker ${obj.ticker}. Marking as suspect.`);
+                }
+              }
+              Object.values(obj).forEach(val => {
+                if (typeof val === 'object') updateWithFactualData(val);
+              });
+            }
+          };
+    
+          updateWithFactualData(parsedData);
+    
+          const compiledData = {
+            timestamp: new Date().toISOString(),
+            briefing: parsedData,
+            factual_market_data: validFactualData,
+            agent_raw_payload: data // Keep the original payload just in case it had more info 
+          };
+    
+          // Save to root directory as requested
+          const rootPath = path.resolve(__dirname, '../../../../compiled_briefing.json');      
+          fs.writeFileSync(rootPath, JSON.stringify(compiledData, null, 2));
+          console.log(`BriefingService: Compiled data saved to ${rootPath}`);
+        } catch (err) {
+          console.error('BriefingService: Failed to compile or save data file:', err.message); 
+        }
+    
+        // Now that prices are corrected, generate/refresh history if needed
+        enrichWithHistory(parsedData);
+    
+        const briefing = new Briefing({
+          data: parsedData, // Use the enriched and FACTUALLY CORRECTED parsedData
+          source: 'n8n',
+        });
     return await briefing.save();
   }
 
