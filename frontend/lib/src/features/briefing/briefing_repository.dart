@@ -63,7 +63,9 @@ class BriefingRepository extends _$BriefingRepository {
       final analysis = result['analysis'] as Map<String, dynamic>;
       
       // Extract specific fields if they exist in the analysis map
-      final outlook = analysis['outlook']?.toString() ?? analysis['outlook_1_3_months']?.toString();
+      final outlook = analysis['market_outlook']?.toString() ?? 
+                     analysis['outlook']?.toString() ?? 
+                     analysis['outlook_1_3_months']?.toString();
       final catalysts = analysis['catalysts'];
       final risks = analysis['risks'];
       final priceAction = analysis['potential_price_action']?.toString() ?? analysis['price_action_projection']?.toString();
