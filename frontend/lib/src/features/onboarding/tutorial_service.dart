@@ -115,7 +115,7 @@ class TutorialService {
   }
 
   // ── Nexus ─────────────────────────────────────────────────────────────────
-  // Order: current nav tab → manage button → dash guide (profile lives there)
+  // Order: current nav tab → manage button → scanner guide
   static List<TargetFocus> getNexusTargets() {
     return [
       _buildTarget(
@@ -135,11 +135,67 @@ class TutorialService {
         align: ContentAlign.bottom,
       ),
       _buildTarget(
+        identify: "nav_scan_guide",
+        key: TutorialKeys.navScan,
+        title: "Up Next: Alpha Scanner",
+        content:
+            "Tap here to visit the Alpha Scanner — your AI-powered signal feed for opportunities, divergences, and catalysts. Tutorial continues on arrival.",
+        align: ContentAlign.top,
+        isGuide: true,
+      ),
+    ];
+  }
+
+  // ── Scanner ───────────────────────────────────────────────────────────────
+  // Order: current nav tab → pulse → opportunities → divergences → catalysts → dash guide
+  static List<TargetFocus> getScannerTargets() {
+    return [
+      _buildTarget(
+        identify: "nav_scan",
+        key: TutorialKeys.navScan,
+        title: "Alpha Scanner",
+        content:
+            "The Scanner is your AI signal feed. It surfaces high-conviction opportunities, sentiment divergences, and strategic catalysts from your daily briefings. Empty on first launch until a briefing cycle runs.",
+        align: ContentAlign.top,
+      ),
+      _buildTarget(
+        identify: "scanner_pulse",
+        key: TutorialKeys.scannerPulse,
+        title: "Live Scan Status",
+        content:
+            "This indicator shows the scanner is active and monitoring signals. When a briefing cycle completes, results populate the sections below automatically.",
+        align: ContentAlign.bottom,
+      ),
+      _buildTarget(
+        identify: "scanner_opportunities",
+        key: TutorialKeys.scannerOpportunities,
+        title: "Strategic Opportunities",
+        content:
+            "High-conviction trade ideas identified by the AI — each with a sentiment score, time horizon, and scout analysis. Empty until your first briefing runs.",
+        align: ContentAlign.bottom,
+      ),
+      _buildTarget(
+        identify: "scanner_divergences",
+        key: TutorialKeys.scannerDivergences,
+        title: "High-Signal Divergences",
+        content:
+            "Assets where AI sentiment is strongly positive but price action remains flat or down — potential early entry signals sourced from your watchlist.",
+        align: ContentAlign.bottom,
+      ),
+      _buildTarget(
+        identify: "scanner_catalysts",
+        key: TutorialKeys.scannerCatalysts,
+        title: "Strategic Catalysts",
+        content:
+            "Key market events and intelligence anchors extracted from briefings that may drive near-term price movement. Tap any card to view its full report in the Vault.",
+        align: ContentAlign.bottom,
+      ),
+      _buildTarget(
         identify: "nav_dash_guide",
         key: TutorialKeys.navDash,
         title: "Up Next: Your Profile",
         content:
-            "Return to the War Room, then tap your profile icon in the top-right corner to complete your orientation and configure your intelligence settings.",
+            "Return to the War Room and tap the profile icon in the top-right corner to complete your orientation and configure your intelligence settings.",
         align: ContentAlign.top,
         isGuide: true,
       ),

@@ -164,8 +164,14 @@ class ProfileScreen extends ConsumerWidget {
                           icon: Icons.school_outlined,
                           title: 'Restart Tutorial',
                           onTap: () async {
+                            // Reset state immediately (synchronous in-memory update),
+                            // then navigate to dashboard so the tutorial fires fresh.
+                            // Using go('/') replaces the entire navigation stack back
+                            // to the shell root, ensuring DashboardScreen remounts.
                             await ref.read(onboardingProvider.notifier).resetOnboarding();
                             if (context.mounted) {
+                              // Pop profile off the root navigator first, then go to
+                              // dashboard so the shell route child is fully replaced.
                               context.go('/');
                             }
                           },
