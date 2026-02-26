@@ -77,7 +77,14 @@ class BriefingService {
       try {
         parsedData = JSON.parse(cleanData);
       } catch (e) {
-        console.warn('⚠️ BriefingService: Incoming briefing is INVALID JSON.');
+        // AI models sometimes produce trailing commas — strip them and retry
+        try {
+          const sanitized = cleanData.replace(/,(\s*[}\]])/g, '$1');
+          parsedData = JSON.parse(sanitized);
+          console.warn('⚠️ BriefingService: Briefing had trailing commas — sanitized and parsed successfully.');
+        } catch (e2) {
+          console.warn('⚠️ BriefingService: Incoming briefing is INVALID JSON, storing as raw string.');
+        }
       }
     }
 
