@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../../core/theme/app_theme.dart';
@@ -12,10 +13,11 @@ class TutorialService {
   }) {
     return TutorialCoachMark(
       targets: targets,
-      colorShadow: AppTheme.obsidian,
+      // Deep navy-black shadow so the highlighted element truly pops.
+      colorShadow: const Color(0xFF060610),
+      opacityShadow: 0.85,
       textSkip: "SKIP",
-      paddingFocus: 10,
-      opacityShadow: 0.6,
+      paddingFocus: 12,
       onFinish: onFinish,
       onSkip: onSkip,
       onClickTarget: (target) {},
@@ -186,52 +188,85 @@ class TutorialService {
         TargetContent(
           align: align,
           builder: (context, controller) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title.toUpperCase(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.goldAmber,
-                    fontSize: 16,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  content,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                GestureDetector(
-                  onTap: controller.next,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.goldAmber,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      isGuide ? 'GOT IT' : 'NEXT  →',
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        letterSpacing: 1.2,
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: Container(
+                  decoration: BoxDecoration(
+                    // Frosted dark glass panel
+                    color: const Color(0xFF0C0C1A).withOpacity(0.78),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border(
+                      // Gold accent on top for brand alignment
+                      top: const BorderSide(
+                        color: AppTheme.goldAmber,
+                        width: 1.5,
+                      ),
+                      left: BorderSide(
+                        color: Colors.white.withOpacity(0.10),
+                        width: 1,
+                      ),
+                      right: BorderSide(
+                        color: Colors.white.withOpacity(0.10),
+                        width: 1,
+                      ),
+                      bottom: BorderSide(
+                        color: Colors.white.withOpacity(0.10),
+                        width: 1,
                       ),
                     ),
                   ),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title.toUpperCase(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.goldAmber,
+                          fontSize: 13,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        content,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.88),
+                          fontSize: 14,
+                          height: 1.55,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      GestureDetector(
+                        onTap: controller.next,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.goldAmber,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            isGuide ? 'GOT IT' : 'NEXT  →',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              letterSpacing: 1.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             );
           },
         ),
