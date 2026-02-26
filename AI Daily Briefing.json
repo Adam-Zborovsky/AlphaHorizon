@@ -22,7 +22,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\n// Handle both API response format (with .data) and direct file format\nconst inputData = $('Fetch Web Config').first().json.data;\n\nlet rawTopics = inputData.topics || [];\nconst tickers = inputData.tickers || [];\n\n// Extract names from objects if necessary and filter for enabled topics\nconst topics = rawTopics.map(t => {\n  if (typeof t === 'string') return t;\n  return t.enabled !== false ? t.name : null;\n}).filter(t => t !== null);\n\nreturn {\n  topics,\n  tickers,\n  rssQuery: topics.length > 0 ? topics.join(' OR ') : \"market news\"\n};"
+        "jsCode": "\n// Handle both API response format (with .data) and direct file format\nconst inputJson = $input.first().json;\nconst inputData = inputJson.data || (inputJson.body && inputJson.body.config);\nlet rawTopics = inputData.topics || [];\nconst tickers = inputData.tickers || [];\nconst userId = inputData.userId || (inputJson.body && inputJson.body.userId) || null;\n\n// Extract names from objects if necessary and filter for enabled topics\nconst topics = rawTopics.map(t => {\n  if (typeof t === 'string') return t;\n  return t.enabled !== false ? t.name : null;\n}).filter(t => t !== null);\n\nreturn {\n  topics,\n  tickers,\n  userId,\n  rssQuery: topics.length > 0 ? topics.join(' OR ') : \"market news\"\n};"
       },
       "id": "082826ba-d66a-4e73-ab17-f08561e88ec5",
       "name": "Config",
@@ -292,6 +292,10 @@
             {
               "name": "raw_market_data",
               "value": "={{ $('Aggregate Agent Results').first().json.market_data }}"
+            },
+            {
+              "name": "userId",
+              "value": "={{ $('Config').first().json.userId }}"
             }
           ]
         },
@@ -324,7 +328,7 @@
     },
     {
       "parameters": {
-        "url": "https://alpha-horizon-backend.adamzborovsky.com/api/v1/briefing/config",
+        "url": "https://alpha-horizon-backend.adamzborovsky.com/api/v1/briefing/config/system?userId={{ $vars.BRIEFING_USER_ID }}",
         "options": {}
       },
       "id": "935084b9-73d5-4b0e-83c9-546bb1f49af7",
@@ -333,7 +337,7 @@
       "typeVersion": 4.1,
       "position": [
         95008,
-        3008
+        2928
       ]
     },
     {
@@ -483,7 +487,7 @@
       "main": [
         [
           {
-            "node": "Fetch Web Config",
+            "node": "Config",
             "type": "main",
             "index": 0
           }
@@ -774,7 +778,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "timeSavedPerExecution": 25
   },
-  "versionId": "fb186d8f-0506-48c4-af07-e8dd91a5548b",
+  "versionId": "7e66e0ef-8713-4283-a76f-fbb35329a330",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "462f72c1cb99079f620d4944d8321993a68403a9c985b9412cdd835b5280d81a"

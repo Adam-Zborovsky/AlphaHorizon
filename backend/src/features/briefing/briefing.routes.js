@@ -12,6 +12,13 @@ const router = express.Router();
  */
 router.post('/', briefingController.save);
 
+/**
+ * @route GET /api/v1/briefing/config/system
+ * Returns config for a given userId — called by n8n Schedule Trigger (no auth token available).
+ * Accepts ?userId=... query param.
+ */
+router.get('/config/system', briefingController.getConfigForSystem);
+
 // All other briefing routes are protected
 router.use(authMiddleware);
 

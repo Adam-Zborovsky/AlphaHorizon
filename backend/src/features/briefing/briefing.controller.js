@@ -49,6 +49,26 @@ class BriefingController {
   }
 
   /**
+   * Get config for a userId — called by n8n Schedule Trigger (no auth token)
+   */
+  async getConfigForSystem(req, res, next) {
+    try {
+      const { userId } = req.query;
+      if (!userId) {
+        return res.status(400).json({ message: 'userId query param is required' });
+      }
+      const config = await briefingService.getConfig(userId);
+      res.status(200).json({
+        userId,
+        topics: config.topics,
+        tickers: config.tickers,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
    * Get the current configuration for user
    */
   async getConfig(req, res, next) {
