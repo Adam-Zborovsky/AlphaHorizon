@@ -127,7 +127,7 @@ class _DetailContent extends ConsumerWidget {
                       ),
                       const SizedBox(height: 20),
                       OutlinedButton.icon(
-                        onPressed: () => context.push('/vault?category=${Uri.encodeComponent('Market Analysis')}'),
+                        onPressed: () => context.go('/vault?category=${Uri.encodeComponent('Market Analysis')}'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppTheme.goldAmber,
                           side: BorderSide(color: AppTheme.goldAmber.withOpacity(0.3)),
@@ -204,7 +204,7 @@ class _DetailHeader extends ConsumerWidget {
       pinned: true,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => context.pop(),
       ),
       title: Text(ticker, style: Theme.of(context).textTheme.displaySmall),
       actions: [
