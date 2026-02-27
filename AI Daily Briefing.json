@@ -305,7 +305,7 @@
         101200,
         2672
       ],
-      "webhookId": "89d64947-6f55-4f49-949d-3b44ed7058d2"
+      "webhookId": "trigger-briefing"
     },
     {
       "parameters": {
@@ -726,7 +726,8 @@
   "versionId": "2901919f-77c8-4db0-badc-fcc5564208a6",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "462f72c1cb99079f620d4944d8321993a68403a9c985b9412cdd835b5280d81a"
+    "instanceId": "462f72c1cb99079f620d4944d8321993a68403a9c985b9412cdd835b5280d81a",
+    "webhook_url": "https://n8n.zborovsky.cloud/webhook/trigger-briefing"
   },
   "id": "KUGwhozHkuRG7Jhc",
   "tags": []

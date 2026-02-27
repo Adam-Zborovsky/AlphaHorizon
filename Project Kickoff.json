@@ -3,141 +3,41 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "// ── SET YOUR BOT TOKEN HERE ──────────────────────────────────────\nreturn { botToken: 'YOUR_BOT_TOKEN' };\n// ─────────────────────────────────────────────────────────────────"
+        "updates": ["message"],
+        "additionalFields": {}
       },
-      "id": "bot-config",
-      "name": "Bot Config",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [100, 300]
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "seconds",
-              "secondsInterval": 30
-            }
-          ]
-        }
-      },
-      "id": "schedule-trigger",
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [100, 460]
-    },
-    {
-      "parameters": {
-        "command": "cat /home/adam/n8n/Project_Kickoff/telegram_offset.txt 2>/dev/null || echo '0'"
-      },
-      "id": "read-offset",
-      "name": "Read Offset",
-      "type": "n8n-nodes-base.ssh",
-      "typeVersion": 1,
-      "position": [300, 460],
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 300],
+      "webhookId": "project-kickoff-telegram",
       "credentials": {
-        "sshPassword": {
-          "id": "0EnwcxrRu8Fo75Hq",
-          "name": "SSH Password account"
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
         }
       }
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('Bot Config').first().json.botToken }}/getUpdates",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "offset",
-              "value": "={{ parseInt($('Read Offset').first().json.stdout.trim() || '0') }}"
-            },
-            {
-              "name": "limit",
-              "value": "5"
-            },
-            {
-              "name": "timeout",
-              "value": "0"
-            }
-          ]
-        },
-        "options": {}
+        "jsCode": "const msg = $input.first().json;\nconst chatId = msg.message?.chat?.id || msg.callback_query?.message?.chat?.id;\nconst text = (msg.message?.text || '').trim();\nif (!chatId || !text) throw new Error('No chatId or text in Telegram message');\nreturn { chatId: String(chatId), text };"
       },
-      "id": "get-updates",
-      "name": "Get Updates",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [500, 460]
-    },
-    {
-      "parameters": {
-        "jsCode": "const result = $input.first().json;\nconst updates = result.result || [];\n\nif (!updates.length) {\n  return { hasMessage: false, chatId: null, text: null, newOffset: null };\n}\n\n// Advance offset past all received updates\nconst newOffset = String(updates[updates.length - 1].update_id + 1);\n\n// Find the first text message\nfor (const update of updates) {\n  if (update.message && update.message.text) {\n    return {\n      hasMessage: true,\n      chatId: String(update.message.chat.id),\n      text: update.message.text.trim(),\n      newOffset\n    };\n  }\n}\n\n// Non-text updates — still advance offset\nreturn { hasMessage: false, chatId: null, text: null, newOffset };"
-      },
-      "id": "process-updates",
-      "name": "Process Updates",
+      "id": "extract-message",
+      "name": "Extract Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [700, 460]
+      "position": [300, 300]
     },
     {
       "parameters": {
-        "command": "={{ $json.newOffset ? `echo '${$json.newOffset}' > /home/adam/n8n/Project_Kickoff/telegram_offset.txt` : 'echo skip' }}"
-      },
-      "id": "save-offset",
-      "name": "Save Offset",
-      "type": "n8n-nodes-base.ssh",
-      "typeVersion": 1,
-      "position": [900, 460],
-      "credentials": {
-        "sshPassword": {
-          "id": "0EnwcxrRu8Fo75Hq",
-          "name": "SSH Password account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "has-message-check",
-              "leftValue": "={{ $('Process Updates').first().json.hasMessage }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "equal"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "id": "has-message",
-      "name": "Has Message",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [1100, 460]
-    },
-    {
-      "parameters": {
-        "command": "={{ `cat /home/adam/n8n/Project_Kickoff/state/${$('Process Updates').first().json.chatId}.json 2>/dev/null || echo '{}'` }}"
+        "command": "={{ `cat /home/adam/n8n/Project_Kickoff/state/${$json.chatId}.json 2>/dev/null || echo '{}'` }}"
       },
       "id": "read-state",
       "name": "Read State",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [1300, 460],
+      "position": [500, 300],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -147,13 +47,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const chatId = $('Process Updates').first().json.chatId;\nconst text = $('Process Updates').first().json.text;\n\nlet state = {};\ntry {\n  const stateTxt = ($('Read State').first().json.stdout || '{}').trim();\n  state = JSON.parse(stateTxt || '{}');\n} catch(e) { state = {}; }\n\nconst stage = state.stage || null;\n\n// Brainstorm pending confirmation — intercept all messages\nif (stage === 'brainstorm_pending') {\n  if (text === '/confirm' || text.toLowerCase() === 'confirm' || text.toLowerCase() === 'yes') {\n    return {\n      action: 'confirm_brainstorm',\n      chatId,\n      name: state.name,\n      description: state.description,\n      notes: state.notes || ''\n    };\n  }\n  if (text === '/cancel' || text.toLowerCase() === 'cancel' || text.toLowerCase() === 'no') {\n    return { action: 'cancel', chatId };\n  }\n  return {\n    action: 'help',\n    chatId,\n    helpMsg: 'Reply /confirm to kick off this project, or /cancel to discard and start over.'\n  };\n}\n\n// Top-level commands\nif (text.startsWith('/kickoff')) {\n  const content = text.replace('/kickoff', '').trim();\n  if (!content) {\n    return {\n      action: 'help',\n      chatId,\n      helpMsg: 'Include a description after /kickoff.\\n\\nExample:\\n`/kickoff TaskMaster — a todo app with user auth and tagging`'\n    };\n  }\n  return { action: 'kickoff', chatId, content };\n}\n\nif (text.startsWith('/brainstorm')) {\n  const vague = text.replace('/brainstorm', '').trim();\n  if (!vague) {\n    return {\n      action: 'help',\n      chatId,\n      helpMsg: 'Include an idea after /brainstorm.\\n\\nExample:\\n`/brainstorm something for tracking my reading habits`'\n    };\n  }\n  return { action: 'brainstorm', chatId, vague };\n}\n\nif (text === '/cancel') {\n  return { action: 'cancel', chatId };\n}\n\nreturn { action: 'help', chatId };"
+        "jsCode": "const chatId = $('Extract Message').first().json.chatId;\nconst text = $('Extract Message').first().json.text;\n\nlet state = {};\ntry {\n  const stateTxt = ($('Read State').first().json.stdout || '{}').trim();\n  state = JSON.parse(stateTxt || '{}');\n} catch(e) { state = {}; }\n\nconst stage = state.stage || null;\n\n// Brainstorm pending confirmation — intercept all messages\nif (stage === 'brainstorm_pending') {\n  if (text === '/confirm' || text.toLowerCase() === 'confirm' || text.toLowerCase() === 'yes') {\n    return {\n      action: 'confirm_brainstorm',\n      chatId,\n      name: state.name,\n      description: state.description,\n      notes: state.notes || ''\n    };\n  }\n  if (text === '/cancel' || text.toLowerCase() === 'cancel' || text.toLowerCase() === 'no') {\n    return { action: 'cancel', chatId };\n  }\n  return {\n    action: 'help',\n    chatId,\n    helpMsg: 'Reply /confirm to kick off this project, or /cancel to discard and start over.'\n  };\n}\n\n// Top-level commands\nif (text.startsWith('/kickoff')) {\n  const content = text.replace('/kickoff', '').trim();\n  if (!content) {\n    return {\n      action: 'help',\n      chatId,\n      helpMsg: 'Include a description after /kickoff.\\n\\nExample:\\n`/kickoff TaskMaster — a todo app with user auth and tagging`'\n    };\n  }\n  return { action: 'kickoff', chatId, content };\n}\n\nif (text.startsWith('/brainstorm')) {\n  const vague = text.replace('/brainstorm', '').trim();\n  if (!vague) {\n    return {\n      action: 'help',\n      chatId,\n      helpMsg: 'Include an idea after /brainstorm.\\n\\nExample:\\n`/brainstorm something for tracking my reading habits`'\n    };\n  }\n  return { action: 'brainstorm', chatId, vague };\n}\n\nif (text === '/cancel') {\n  return { action: 'cancel', chatId };\n}\n\nreturn { action: 'help', chatId };"
       },
       "id": "process-message",
       "name": "Process Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1500, 460]
+      "position": [700, 300]
     },
     {
       "parameters": {
@@ -173,7 +73,7 @@
       "name": "Route Action",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 1,
-      "position": [1700, 460]
+      "position": [900, 300]
     },
     {
       "parameters": {
@@ -183,7 +83,7 @@
       "name": "Prepare Parser Command",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1900, 300]
+      "position": [1100, 140]
     },
     {
       "parameters": {
@@ -193,7 +93,7 @@
       "name": "Agent: Input Parser",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [2100, 300],
+      "position": [1300, 140],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -231,7 +131,7 @@
       "name": "If: Parser",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [2300, 300]
+      "position": [1500, 140]
     },
     {
       "parameters": {
@@ -241,7 +141,7 @@
       "name": "Parse Parser Output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2500, 300]
+      "position": [1700, 140]
     },
     {
       "parameters": {
@@ -251,28 +151,28 @@
       "name": "Project Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2700, 400]
+      "position": [1900, 300]
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('Bot Config').first().json.botToken }}/sendMessage",
-        "method": "POST",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "chat_id", "value": "={{ $('Project Data').first().json.chatId }}" },
-            { "name": "text", "value": "=🚀 Starting kickoff for *{{ $('Project Data').first().json.name }}*...\n\n📋 Step 1/3 — Analysing features and requirements..." },
-            { "name": "parse_mode", "value": "Markdown" }
-          ]
-        },
-        "options": {}
+        "chatId": "={{ $('Project Data').first().json.chatId }}",
+        "text": "=🚀 Starting kickoff for *{{ $('Project Data').first().json.name }}*...\n\n📋 Step 1/3 — Analysing features and requirements...",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
       },
       "id": "status-starting",
       "name": "Status: Starting",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [2900, 400],
-      "onError": "continueRegularOutput"
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2100, 300],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
     },
     {
       "parameters": {
@@ -282,7 +182,7 @@
       "name": "Prepare Analyst Command",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3100, 400]
+      "position": [2300, 300]
     },
     {
       "parameters": {
@@ -292,7 +192,7 @@
       "name": "Agent: Product Analyst",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [3300, 400],
+      "position": [2500, 300],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -330,27 +230,26 @@
       "name": "If: Analyst",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [3500, 400]
+      "position": [2700, 300]
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('Bot Config').first().json.botToken }}/sendMessage",
-        "method": "POST",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "chat_id", "value": "={{ $('Project Data').first().json.chatId }}" },
-            { "name": "text", "value": "✅ Feature analysis complete.\n\n⚙️ Step 2/3 — Building tech architecture and design system..." }
-          ]
-        },
-        "options": {}
+        "chatId": "={{ $('Project Data').first().json.chatId }}",
+        "text": "✅ Feature analysis complete.\n\n⚙️ Step 2/3 — Building tech architecture and design system...",
+        "additionalFields": {}
       },
       "id": "status-features-done",
       "name": "Status: Features Done",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [3700, 400],
-      "onError": "continueRegularOutput"
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2900, 300],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
     },
     {
       "parameters": {
@@ -360,7 +259,7 @@
       "name": "Prepare Tech Command",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3900, 300]
+      "position": [3100, 200]
     },
     {
       "parameters": {
@@ -370,7 +269,7 @@
       "name": "Prepare Design Command",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3900, 500]
+      "position": [3100, 400]
     },
     {
       "parameters": {
@@ -380,7 +279,7 @@
       "name": "Agent: Tech Architect",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [4100, 300],
+      "position": [3300, 200],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -396,7 +295,7 @@
       "name": "Agent: Design Director",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [4100, 500],
+      "position": [3300, 400],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -434,7 +333,7 @@
       "name": "If: Tech",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [4300, 300]
+      "position": [3500, 200]
     },
     {
       "parameters": {
@@ -466,7 +365,7 @@
       "name": "If: Design",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [4300, 500]
+      "position": [3500, 400]
     },
     {
       "parameters": {
@@ -478,27 +377,26 @@
       "name": "Merge Results",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
-      "position": [4500, 400]
+      "position": [3700, 300]
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('Bot Config').first().json.botToken }}/sendMessage",
-        "method": "POST",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "chat_id", "value": "={{ $('Project Data').first().json.chatId }}" },
-            { "name": "text", "value": "✅ Architecture and design ready.\n\n📝 Step 3/3 — Assembling project files..." }
-          ]
-        },
-        "options": {}
+        "chatId": "={{ $('Project Data').first().json.chatId }}",
+        "text": "✅ Architecture and design ready.\n\n📝 Step 3/3 — Assembling project files...",
+        "additionalFields": {}
       },
       "id": "status-arch-done",
       "name": "Status: Arch Done",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [4700, 400],
-      "onError": "continueRegularOutput"
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [3900, 300],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
     },
     {
       "parameters": {
@@ -508,7 +406,7 @@
       "name": "Prepare Assembler Command",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [4900, 400]
+      "position": [4100, 300]
     },
     {
       "parameters": {
@@ -518,7 +416,7 @@
       "name": "Agent: Context Assembler",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [5100, 400],
+      "position": [4300, 300],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -556,7 +454,7 @@
       "name": "If: Assembler",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [5300, 400]
+      "position": [4500, 300]
     },
     {
       "parameters": {
@@ -566,7 +464,7 @@
       "name": "Split Output",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [5500, 400]
+      "position": [4700, 300]
     },
     {
       "parameters": {
@@ -576,7 +474,7 @@
       "name": "Write Files",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [5700, 400],
+      "position": [4900, 300],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -586,23 +484,22 @@
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('Bot Config').first().json.botToken }}/sendMessage",
-        "method": "POST",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "chat_id", "value": "={{ $('Project Data').first().json.chatId }}" },
-            { "name": "text", "value": "=📄 {{ $json.stdout }}" }
-          ]
-        },
-        "options": {}
+        "chatId": "={{ $('Project Data').first().json.chatId }}",
+        "text": "=📄 {{ $json.stdout }}",
+        "additionalFields": {}
       },
       "id": "status-file-written",
       "name": "Status: File Written",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [5900, 400],
-      "onError": "continueRegularOutput"
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [5100, 300],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
     },
     {
       "parameters": {
@@ -612,7 +509,7 @@
       "name": "Prepare Brainstorm Command",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1900, 580]
+      "position": [1100, 440]
     },
     {
       "parameters": {
@@ -622,7 +519,7 @@
       "name": "Agent: Brainstorm",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [2100, 580],
+      "position": [1300, 440],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -660,7 +557,7 @@
       "name": "If: Brainstorm",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
-      "position": [2300, 580]
+      "position": [1500, 440]
     },
     {
       "parameters": {
@@ -670,7 +567,7 @@
       "name": "Format Brainstorm",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2500, 580]
+      "position": [1700, 440]
     },
     {
       "parameters": {
@@ -680,7 +577,7 @@
       "name": "Save Brainstorm State",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [2700, 580],
+      "position": [1900, 440],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -690,23 +587,23 @@
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('Bot Config').first().json.botToken }}/sendMessage",
-        "method": "POST",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "chat_id", "value": "={{ $('Format Brainstorm').first().json.chatId }}" },
-            { "name": "text", "value": "={{ $('Format Brainstorm').first().json.message }}" },
-            { "name": "parse_mode", "value": "Markdown" }
-          ]
-        },
-        "options": {}
+        "chatId": "={{ $('Format Brainstorm').first().json.chatId }}",
+        "text": "={{ $('Format Brainstorm').first().json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
       },
       "id": "send-brainstorm-results",
       "name": "Send Brainstorm Results",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [2900, 580]
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2100, 440],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
     },
     {
       "parameters": {
@@ -716,7 +613,7 @@
       "name": "Clear State",
       "type": "n8n-nodes-base.ssh",
       "typeVersion": 1,
-      "position": [1900, 700],
+      "position": [1100, 580],
       "credentials": {
         "sshPassword": {
           "id": "0EnwcxrRu8Fo75Hq",
@@ -726,106 +623,56 @@
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('Bot Config').first().json.botToken }}/sendMessage",
-        "method": "POST",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "chat_id", "value": "={{ $('Process Message').first().json.chatId }}" },
-            { "name": "text", "value": "Cancelled. Send /kickoff or /brainstorm when you're ready." }
-          ]
-        },
-        "options": {}
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "Cancelled. Send /kickoff or /brainstorm when you're ready.",
+        "additionalFields": {}
       },
       "id": "send-cancelled",
       "name": "Send Cancelled",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [2100, 700]
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1300, 580],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
     },
     {
       "parameters": {
-        "url": "=https://api.telegram.org/bot{{ $('Bot Config').first().json.botToken }}/sendMessage",
-        "method": "POST",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            { "name": "chat_id", "value": "={{ $('Process Message').first().json.chatId }}" },
-            { "name": "text", "value": "={{ $('Process Message').first().json.helpMsg || '👋 *Project Kickoff Bot*\\n\\n`/kickoff [description]` — Start a project. Describe what you want to build and I will parse out the details.\\n\\nExample: `/kickoff TaskMaster — a todo app with user auth, tags, and due dates`\\n\\n`/brainstorm [vague idea]` — Give me a rough concept and I will flesh it out, then ask for your confirmation before kicking off.\\n\\nExample: `/brainstorm something to help me track my reading habits`\\n\\n`/cancel` — Cancel the current flow.' }}" },
-            { "name": "parse_mode", "value": "Markdown" }
-          ]
-        },
-        "options": {}
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.helpMsg || '👋 *Project Kickoff Bot*\\n\\n`/kickoff [description]` — Start a project. Describe what you want to build and I will parse out the details.\\n\\nExample: `/kickoff TaskMaster — a todo app with user auth, tags, and due dates`\\n\\n`/brainstorm [vague idea]` — Give me a rough concept and I will flesh it out, then ask for your confirmation before kicking off.\\n\\nExample: `/brainstorm something to help me track my reading habits`\\n\\n`/cancel` — Cancel the current flow.' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
       },
       "id": "send-help",
       "name": "Send Help",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [1900, 840]
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1100, 700],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
     }
   ],
   "connections": {
-    "Schedule Trigger": {
+    "Telegram Trigger": {
       "main": [
         [
           {
-            "node": "Bot Config",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Read Offset",
+            "node": "Extract Message",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Read Offset": {
-      "main": [
-        [
-          {
-            "node": "Get Updates",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Updates": {
-      "main": [
-        [
-          {
-            "node": "Process Updates",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Process Updates": {
-      "main": [
-        [
-          {
-            "node": "Save Offset",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Offset": {
-      "main": [
-        [
-          {
-            "node": "Has Message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Has Message": {
+    "Extract Message": {
       "main": [
         [
           {
@@ -1269,7 +1116,8 @@
     "executionOrder": "v1"
   },
   "meta": {
-    "templateCredsSetupCompleted": false
+    "templateCredsSetupCompleted": false,
+    "webhook_url": "https://n8n.zborovsky.cloud/webhook/project-kickoff-telegram"
   },
   "tags": []
 }
