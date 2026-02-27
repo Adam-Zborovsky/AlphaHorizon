@@ -184,7 +184,7 @@ class _DailyBriefingSummary extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(40),
           child: Center(
-            child: Text('No intelligence available for this period.', style: TextStyle(color: Colors.white24)),
+            child: Text('No reports available yet.', style: TextStyle(color: Colors.white24)),
           ),
         ),
       );
@@ -254,7 +254,7 @@ class _DailyBriefingSummary extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Full Intelligence Report',
+                  'Read Full Report',
                   style: TextStyle(
                     color: AppTheme.goldAmber,
                     fontWeight: FontWeight.bold,
@@ -447,9 +447,9 @@ class _MarketNexusList extends StatelessWidget {
                 children: [
                   const Icon(Icons.add_chart_rounded, color: Colors.white10, size: 32),
                   const SizedBox(height: 12),
-                  const Text('No stocks in nexus', style: TextStyle(color: Colors.white24)),
+                  const Text('No stocks added', style: TextStyle(color: Colors.white24)),
                   const SizedBox(height: 8),
-                  Text('Tap to configure watchlist', style: TextStyle(color: AppTheme.goldAmber.withOpacity(0.5), fontSize: 11, fontWeight: FontWeight.bold)),
+                  Text('Tap to add stocks', style: TextStyle(color: AppTheme.goldAmber.withOpacity(0.5), fontSize: 11, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),

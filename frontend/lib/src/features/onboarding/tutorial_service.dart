@@ -33,41 +33,41 @@ class TutorialService {
       _buildTarget(
         identify: "nav_dash",
         key: TutorialKeys.navDash,
-        title: "War Room",
+        title: "Home Screen",
         content:
-            "This is your command center. The War Room gives you a live overview of intelligence briefings, sector sentiment, and your tracked assets — all in one place.",
+            "This is your main screen. It shows your daily reports, how each topic is trending, and the stocks you are tracking — all in one place.",
         align: ContentAlign.top,
       ),
       _buildTarget(
         identify: "dash_briefing",
         key: TutorialKeys.dashBriefing,
-        title: "Daily Briefing",
+        title: "Daily Report",
         content:
-            "Your synthesized daily intelligence report appears here. It highlights the top sector, its sentiment score, and a strategic summary. Empty on first launch — trigger a briefing from your profile to populate it.",
+            "Your latest AI-generated report appears here. It shows the top topic, a score, and a short summary. It will be empty the first time — go to your profile and tap 'Refresh Now' to get your first report.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "dash_pillars",
         key: TutorialKeys.dashPillars,
-        title: "Intelligence Pillars",
+        title: "Topic Cards",
         content:
-            "Each card represents a tracked intelligence sector with a live sentiment bar. Empty until your first briefing is generated. Once active, tap any pillar to drill into its full report.",
+            "Each card shows a topic you are tracking and how positive or negative the news is right now. Tap any card to read the full report for that topic.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "nav_profile",
         key: TutorialKeys.navProfile,
-        title: "Operator Profile",
+        title: "Your Profile",
         content:
-            "Tap here to access your settings — configure intelligence topics, manage your watchlist, trigger manual refreshes, and restart this tutorial at any time.",
+            "Tap here to open your settings — change your topics, manage your watchlist, get a fresh report, and restart this tutorial.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "nav_vault_guide",
         key: TutorialKeys.navVault,
-        title: "Up Next: Intelligence Vault",
+        title: "Up Next: Report Archive",
         content:
-            "Tap here to visit the Intelligence Vault — your full archive of sector reports, article feeds, and risk assessments. The tutorial will continue when you arrive.",
+            "Tap here to go to the Report Archive — where you can read all your past reports and filter by topic. The tutorial will continue when you arrive.",
         align: ContentAlign.top,
         isGuide: true,
       ),
@@ -81,33 +81,33 @@ class TutorialService {
       _buildTarget(
         identify: "nav_vault",
         key: TutorialKeys.navVault,
-        title: "Intelligence Vault",
+        title: "Report Archive",
         content:
-            "The Vault is your deep-dive archive. Browse all generated intelligence reports, filter by sector, and read full analysis including sentiment scores, catalysts, and risk flags.",
+            "This is where all your reports are saved. You can read every report, filter by topic, and see the score, summary, and risks for each one.",
         align: ContentAlign.top,
       ),
       _buildTarget(
         identify: "vault_filter",
         key: TutorialKeys.vaultFilter,
-        title: "Sector Filter",
+        title: "Filter by Topic",
         content:
-            "Use these pills to filter reports by intelligence category. Categories populate as briefings are generated — on a fresh account this row may show only 'All'.",
+            "Tap one of these buttons to show only reports from that topic. New topics appear here after your first report is generated.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "vault_reports",
         key: TutorialKeys.vaultReports,
-        title: "Intelligence Reports",
+        title: "Your Reports",
         content:
-            "Full reports appear here — each with a sentiment score, summary, source articles, and risk assessment. Empty on first launch until a briefing cycle has run.",
+            "Each report has a score, a summary, and a list of key points and risks. This list will be empty until your first report has been generated.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "nav_nexus_guide",
         key: TutorialKeys.navNexus,
-        title: "Up Next: Market Nexus",
+        title: "Up Next: Stock Tracker",
         content:
-            "Tap here to visit the Market Nexus — where you track live asset prices and manage your watchlist. The tutorial continues on arrival.",
+            "Tap here to go to the Stock Tracker — where you can see live prices for the stocks you follow. The tutorial continues when you arrive.",
         align: ContentAlign.top,
         isGuide: true,
       ),
@@ -121,25 +121,25 @@ class TutorialService {
       _buildTarget(
         identify: "nav_nexus",
         key: TutorialKeys.navNexus,
-        title: "Market Nexus",
+        title: "Stock Tracker",
         content:
-            "The Nexus tracks live price data and sentiment signals for every asset in your watchlist. Empty until you add stocks — tap the Manage button to get started.",
+            "This screen shows live prices for every stock in your watchlist. It will be empty until you add stocks — tap the search bar to get started.",
         align: ContentAlign.top,
       ),
       _buildTarget(
         identify: "nexus_manage",
         key: TutorialKeys.nexusManage,
-        title: "Manage Watchlist",
+        title: "Add Stocks",
         content:
-            "Tap here to add stocks to your watchlist. Once added, each asset appears below with its current price, daily change, and a mini sparkline chart.",
+            "Tap here to search for and add stocks to your watchlist. Each stock will then show its current price, today's change, and a small price chart.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "nav_scan_guide",
         key: TutorialKeys.navScan,
-        title: "Up Next: Alpha Scanner",
+        title: "Up Next: Signal Feed",
         content:
-            "Tap here to visit the Alpha Scanner — your AI-powered signal feed for opportunities, divergences, and catalysts. Tutorial continues on arrival.",
+            "Tap here to go to the Signal Feed — where the AI shows you trade ideas, unusual patterns, and important market events. Tutorial continues on arrival.",
         align: ContentAlign.top,
         isGuide: true,
       ),
@@ -153,41 +153,41 @@ class TutorialService {
       _buildTarget(
         identify: "nav_scan",
         key: TutorialKeys.navScan,
-        title: "Alpha Scanner",
+        title: "Signal Feed",
         content:
-            "The Scanner is your AI signal feed. It surfaces high-conviction opportunities, sentiment divergences, and strategic catalysts from your daily briefings. Empty on first launch until a briefing cycle runs.",
+            "This screen shows the best trade ideas and key events found by the AI in your daily reports. It will be empty until your first report has been generated.",
         align: ContentAlign.top,
       ),
       _buildTarget(
         identify: "scanner_pulse",
         key: TutorialKeys.scannerPulse,
-        title: "Live Scan Status",
+        title: "Scan Status",
         content:
-            "This indicator shows the scanner is active and monitoring signals. When a briefing cycle completes, results populate the sections below automatically.",
+            "This bar shows that the system is active and looking for signals. New results appear here automatically after each report is generated.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "scanner_opportunities",
         key: TutorialKeys.scannerOpportunities,
-        title: "Strategic Opportunities",
+        title: "Trade Ideas",
         content:
-            "High-conviction trade ideas identified by the AI — each with a sentiment score, time horizon, and scout analysis. Empty until your first briefing runs.",
+            "The AI picks the best stock opportunities from your reports and shows them here — each with a score, a time frame, and a short explanation.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "scanner_divergences",
         key: TutorialKeys.scannerDivergences,
-        title: "High-Signal Divergences",
+        title: "Price vs. Sentiment Gap",
         content:
-            "Assets where AI sentiment is strongly positive but price action remains flat or down — potential early entry signals sourced from your watchlist.",
+            "These are stocks where the AI sees positive news, but the price has not moved up yet. This can sometimes be an early buying signal.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
         identify: "scanner_catalysts",
         key: TutorialKeys.scannerCatalysts,
-        title: "Strategic Catalysts",
+        title: "Key Market Events",
         content:
-            "Key market events and intelligence anchors extracted from briefings that may drive near-term price movement. Tap any card to view its full report in the Vault.",
+            "Important news events and announcements that could affect stock prices soon. Tap any card to read the full report.",
         align: ContentAlign.bottom,
       ),
       _buildTarget(
@@ -195,7 +195,7 @@ class TutorialService {
         key: TutorialKeys.navDash,
         title: "Up Next: Your Profile",
         content:
-            "Return to the War Room and tap the profile icon in the top-right corner to complete your orientation and configure your intelligence settings.",
+            "Go back to the home screen and tap the profile icon in the top-right corner to finish setup and configure your settings.",
         align: ContentAlign.top,
         isGuide: true,
       ),
@@ -209,17 +209,17 @@ class TutorialService {
       _buildTarget(
         identify: "profile_refresh",
         key: TutorialKeys.profileRefresh,
-        title: "Manual Intelligence Refresh",
+        title: "Refresh Now",
         content:
-            "Triggers a full intelligence gathering cycle right now. Use this after adding new topics or watchlist items to immediately fetch fresh analysis.",
+            "Tap this to get a new report right away. Use it after adding new topics or stocks to see fresh results immediately.",
         align: ContentAlign.top,
       ),
       _buildTarget(
         identify: "profile_logout",
         key: TutorialKeys.profileLogout,
-        title: "Session Logout",
+        title: "Log Out",
         content:
-            "Securely ends your current session. Your settings, watchlist, and topics are all preserved and will be waiting when you log back in.",
+            "Tap here to log out. All your settings, topics, and watchlist will be saved and ready when you log back in.",
         align: ContentAlign.top,
         isGuide: true,
       ),

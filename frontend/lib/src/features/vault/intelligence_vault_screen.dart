@@ -106,7 +106,7 @@ class _IntelligenceVaultScreenState extends ConsumerState<IntelligenceVaultScree
                         children: [
                           const Icon(Icons.wifi_off_rounded, color: Colors.white24, size: 48),
                           const SizedBox(height: 16),
-                          Text('Intel feed offline', style: Theme.of(context).textTheme.titleMedium),
+                          Text('Could not load reports', style: Theme.of(context).textTheme.titleMedium),
                           const SizedBox(height: 8),
                           Text(err.toString(), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white24, fontSize: 12)),
                           const SizedBox(height: 24),
@@ -253,8 +253,8 @@ class _NewsList extends StatelessWidget {
             children: [
               Icon(Icons.auto_awesome_mosaic_outlined, color: Colors.white10, size: 48),
               SizedBox(height: 16),
-              Text('The vault is currently empty.', style: TextStyle(color: Colors.white24)),
-              Text('Awaiting next briefing cycles...', style: TextStyle(color: Colors.white12, fontSize: 12)),
+              Text('No reports yet.', style: TextStyle(color: Colors.white24)),
+              Text('Waiting for the next update...', style: TextStyle(color: Colors.white12, fontSize: 12)),
             ],
           ),
         ),
@@ -386,7 +386,7 @@ class _NewsCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    analysisStr != null ? 'ANALYSIS' : explanationStr != null ? 'EXPLANATION' : 'TAKEAWAY',
+                    analysisStr != null ? 'ANALYSIS' : explanationStr != null ? 'AI ANALYSIS' : 'KEY POINT',
                     style: const TextStyle(
                       color: AppTheme.goldAmber,
                       fontWeight: FontWeight.bold,
@@ -436,7 +436,7 @@ class _NewsCard extends ConsumerWidget {
             ],
             if (item.potentialPriceAction != null) ...[
               const SizedBox(height: 15),
-              const Text('POTENTIAL PRICE ACTION', style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+              const Text('PRICE FORECAST', style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
               const SizedBox(height: 5),
               Text(item.potentialPriceAction!, style: const TextStyle(color: AppTheme.goldAmber, fontSize: 13, fontWeight: FontWeight.w500)),
             ],

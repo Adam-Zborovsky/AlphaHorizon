@@ -129,7 +129,7 @@ class _NexusList extends StatelessWidget {
       return const SliverFillRemaining(
         hasScrollBody: false,
         child: Center(
-          child: Text('Add assets to track live intelligence.', style: TextStyle(color: Colors.white24)),
+          child: Text('Add stocks to start tracking prices.', style: TextStyle(color: Colors.white24)),
         ),
       );
     }

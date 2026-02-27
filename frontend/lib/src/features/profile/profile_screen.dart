@@ -75,7 +75,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        'ACTIVE SESSION',
+                        'LOGGED IN',
                         style: TextStyle(
                           color: AppTheme.goldAmber.withOpacity(0.7),
                           fontSize: 10,
@@ -128,36 +128,36 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 20),
                     _SettingsGroup(
-                      title: 'ALPHA HORIZON CONFIG',
+                      title: 'APP SETTINGS',
                       items: [
                         _SettingsItem(
                           key: TutorialKeys.profileRefresh,
-                          icon: Icons.refresh_rounded, 
-                          title: 'Manual Intelligence Refresh',
+                          icon: Icons.refresh_rounded,
+                          title: 'Refresh Now',
                           onTap: () async {
                             try {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Triggering Alpha Intelligence...'), backgroundColor: AppTheme.obsidian),
+                                const SnackBar(content: Text('Getting your latest reports...'), backgroundColor: AppTheme.obsidian),
                               );
                               await ref.read(briefingRepositoryProvider.notifier).triggerBriefing();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Intelligence workflow started. Check back soon.'), backgroundColor: Colors.green),
+                                const SnackBar(content: Text('Reports are being updated. Check back soon.'), backgroundColor: Colors.green),
                               );
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Trigger failed: $e'), backgroundColor: AppTheme.softCrimson),
+                                SnackBar(content: Text('Refresh failed: $e'), backgroundColor: AppTheme.softCrimson),
                               );
                             }
                           },
                         ),
                         _SettingsItem(
-                          icon: Icons.topic_rounded, 
-                          title: 'Manage Intelligence Topics',
+                          icon: Icons.topic_rounded,
+                          title: 'Manage Topics',
                           onTap: () => context.push('/manage-topics'),
                         ),
                         _SettingsItem(
                           icon: Icons.list_alt_rounded,
-                          title: 'Manage Global Watchlist',
+                          title: 'Manage Watchlist',
                           onTap: () => context.push('/manage-watchlist'),
                         ),
                         _SettingsItem(

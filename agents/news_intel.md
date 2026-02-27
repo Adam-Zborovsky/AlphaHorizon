@@ -26,7 +26,8 @@ The `takeaway` field is the most important part of your output. This is NOT a su
 Rules for takeaways:
 - **State the implication**, not just the event. "Company X acquired Y" is a headline rewrite. "X's acquisition of Y consolidates its position in [domain] and pressures competitor Z" is a takeaway.
 - Keep it to 1-2 sentences, max 120 words.
-- Use professional, direct language. No filler phrases like "This is significant because..." or "It remains to be seen..."
+- **Write in plain, simple English.** The readers are non-native English speakers. Use short sentences and everyday words. Avoid jargon, acronyms, and complex financial vocabulary unless absolutely necessary — if you must use a technical term, keep the rest of the sentence simple.
+- No filler phrases like "This is significant because..." or "It remains to be seen..."
 - If the news is noise (puff pieces, listicles, promotional content), still extract the strongest signal you can. There's always a reason something was published.
 
 ## How to Assign Sentiment
