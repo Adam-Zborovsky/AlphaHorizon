@@ -51,7 +51,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'High-conviction ideas scouted from across the market.',
+                        'The best stock ideas found by the AI in your daily reports.',
                         style: TextStyle(color: Colors.white24, fontSize: 11),
                       ),
                       const SizedBox(height: 15),
@@ -69,7 +69,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                           if (opportunities.isEmpty) {
                             return const _EmptyScannerState(
                               message:
-                                  'No opportunities scouted yet. Trigger a briefing from your profile to populate this section.',
+                                  'No trade ideas yet. Go to your profile and tap "Refresh Now" to generate your first report.',
                             );
                           }
                           return Column(
@@ -80,7 +80,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                         },
                         loading: () => const LinearProgressIndicator(color: AppTheme.goldAmber),
                         error: (e, s) =>
-                            const _EmptyScannerState(message: 'Opportunity feed offline.'),
+                            const _EmptyScannerState(message: 'Could not load trade ideas.'),
                       ),
 
                       const SizedBox(height: 30),
@@ -90,7 +90,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'AI Sentiment is high, but price action remains flat/down.',
+                        'The AI sees positive news, but the stock price has not moved up yet.',
                         style: TextStyle(color: Colors.white24, fontSize: 11),
                       ),
                       const SizedBox(height: 15),
@@ -102,7 +102,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                           if (divergences.isEmpty) {
                             return const _EmptyScannerState(
                               message:
-                                  'No divergences detected. Add stocks to your watchlist to enable this feed.',
+                                  'No signals detected. Add stocks to your watchlist to enable this section.',
                             );
                           }
                           return Column(
@@ -121,7 +121,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Deep-intelligence anchors extracted from daily briefing.',
+                        'Important news events that could affect stock prices soon.',
                         style: TextStyle(color: Colors.white24, fontSize: 11),
                       ),
                       const SizedBox(height: 15),
@@ -139,7 +139,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                           if (catalysts.isEmpty) {
                             return const _EmptyScannerState(
                               message:
-                                  'No catalysts identified yet. Run a briefing cycle to populate this section.',
+                                  'No key events found yet. Run a refresh from your profile to populate this section.',
                             );
                           }
                           return Column(
@@ -250,7 +250,7 @@ class _ScannerPulseState extends State<_ScannerPulse> with SingleTickerProviderS
               ),
               const SizedBox(width: 12),
               Text(
-                'SYSTEM SCANNING LIVE',
+                'SCANNING FOR SIGNALS',
                 style: TextStyle(
                   color: Colors.white.withAlpha(153),
                   fontWeight: FontWeight.bold,
@@ -342,7 +342,7 @@ class _StrategicOpportunityCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const Text(
-                'SCOUT ANALYSIS',
+                'AI ANALYSIS',
                 style: TextStyle(
                   color: AppTheme.goldAmber,
                   fontSize: 8,
@@ -396,7 +396,7 @@ class _DivergenceCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'DIVERGENCE DETECTED',
+                    'SIGNAL DETECTED',
                     style: TextStyle(
                       color: AppTheme.goldAmber.withAlpha(204),
                       fontSize: 8,

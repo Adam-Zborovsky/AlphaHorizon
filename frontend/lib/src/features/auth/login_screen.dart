@@ -133,7 +133,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          _isLogin ? 'AUTHENTICATION' : 'REGISTRATION',
+                          _isLogin ? 'LOG IN' : 'CREATE ACCOUNT',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
@@ -147,15 +147,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         // Username Field
                         _buildTextField(
                           controller: _usernameController,
-                          label: 'OPERATOR ID',
+                          label: 'USERNAME',
                           icon: Icons.person_outline,
                         ),
                         const SizedBox(height: 20),
-                        
+
                         // Password Field
                         _buildTextField(
                           controller: _passwordController,
-                          label: 'SECURE ACCESS CODE',
+                          label: 'PASSWORD',
                           icon: Icons.lock_outline,
                           isPassword: true,
                         ),
@@ -197,7 +197,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 )
                               : Text(
-                                  _isLogin ? 'INITIATE SESSION' : 'ESTABLISH IDENTITY',
+                                  _isLogin ? 'LOG IN' : 'CREATE ACCOUNT',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 1.5,
@@ -214,9 +214,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             });
                           },
                           child: Text(
-                            _isLogin 
-                              ? 'NEW OPERATOR? REGISTER HERE' 
-                              : 'EXISTING OPERATOR? LOGIN HERE',
+                            _isLogin
+                              ? 'NEW USER? CREATE AN ACCOUNT'
+                              : 'ALREADY HAVE AN ACCOUNT? LOG IN',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 11,
