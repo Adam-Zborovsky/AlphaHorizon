@@ -1,0 +1,1122 @@
+{
+  "name": "Project Kickoff",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 300],
+      "webhookId": "project-kickoff-telegram",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.first().json;\nconst chatId = msg.message?.chat?.id || msg.callback_query?.message?.chat?.id;\nconst text = (msg.message?.text || '').trim();\nif (!chatId || !text) throw new Error('No chatId or text in Telegram message');\nreturn { chatId: String(chatId), text };"
+      },
+      "id": "extract-message",
+      "name": "Extract Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "command": "={{ `cat /home/adam/n8n/Project_Kickoff/state/${$json.chatId}.json 2>/dev/null || echo '{}'` }}"
+      },
+      "id": "read-state",
+      "name": "Read State",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $('Extract Message').first().json;\nconst { text, chatId } = msg;\n\nlet state = {};\ntry {\n  const stateTxt = ($('Read State').first().json.stdout || '{}').trim();\n  state = JSON.parse(stateTxt || '{}');\n} catch(e) { state = {}; }\n\nconst stage = state.stage || null;\n\n// Brainstorm pending confirmation — intercept all messages\nif (stage === 'brainstorm_pending') {\n  if (text === '/confirm' || text.toLowerCase() === 'confirm' || text.toLowerCase() === 'yes') {\n    return {\n      action: 'confirm_brainstorm',\n      chatId,\n      name: state.name,\n      description: state.description,\n      notes: state.notes || ''\n    };\n  }\n  if (text === '/cancel' || text.toLowerCase() === 'cancel' || text.toLowerCase() === 'no') {\n    return { action: 'cancel', chatId };\n  }\n  return {\n    action: 'help',\n    chatId,\n    helpMsg: 'Reply /confirm to kick off this project, or /cancel to discard and start over.'\n  };\n}\n\n// Top-level commands\nif (text.startsWith('/kickoff')) {\n  const content = text.replace('/kickoff', '').trim();\n  if (!content) {\n    return {\n      action: 'help',\n      chatId,\n      helpMsg: 'Include a description after /kickoff.\\n\\nExample:\\n`/kickoff TaskMaster — a todo app with user auth and tagging`'\n    };\n  }\n  return { action: 'kickoff', chatId, content };\n}\n\nif (text.startsWith('/brainstorm')) {\n  const vague = text.replace('/brainstorm', '').trim();\n  if (!vague) {\n    return {\n      action: 'help',\n      chatId,\n      helpMsg: 'Include an idea after /brainstorm.\\n\\nExample:\\n`/brainstorm something for tracking my reading habits`'\n    };\n  }\n  return { action: 'brainstorm', chatId, vague };\n}\n\nif (text === '/cancel') {\n  return { action: 'cancel', chatId };\n}\n\nreturn { action: 'help', chatId };"
+      },
+      "id": "process-message",
+      "name": "Process Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.action }}",
+        "rules": {
+          "rules": [
+            { "value2": "kickoff", "output": 0 },
+            { "value2": "brainstorm", "output": 1 },
+            { "value2": "confirm_brainstorm", "output": 2 },
+            { "value2": "cancel", "output": 3 }
+          ]
+        },
+        "fallbackOutput": 4
+      },
+      "id": "route-action",
+      "name": "Route Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const content = $('Process Message').first().json.content;\nconst agentDir = 'Project_Kickoff/agents';\nconst command = `cd /home/adam/n8n && { cat ${agentDir}/input_parser.md; cat <<'AGENTEOF'\\n\\n${content}\\nAGENTEOF\\n} | gemini -p \"\" --yolo`;\nreturn { command };"
+      },
+      "id": "prepare-parser-cmd",
+      "name": "Prepare Parser Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 100]
+    },
+    {
+      "parameters": {
+        "command": "={{ $json.command }}"
+      },
+      "id": "agent-input-parser",
+      "name": "Agent: Input Parser",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [1300, 100],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "parser-check",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-parser",
+      "name": "If: Parser",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [1500, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const stdout = $json.stdout || '';\nconst chatId = $('Process Message').first().json.chatId;\nlet data;\ntry {\n  const cleaned = stdout.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  data = JSON.parse(cleaned);\n} catch(e) {\n  data = { name: 'Project', description: stdout.slice(0, 300), notes: '' };\n}\nreturn {\n  name: data.name || 'Project',\n  description: data.description || '',\n  notes: data.notes || '',\n  chatId\n};"
+      },
+      "id": "parse-parser-output",
+      "name": "Parse Parser Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1700, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nreturn {\n  name: data.name || '',\n  description: data.description || '',\n  notes: data.notes || '',\n  chatId: data.chatId\n};"
+      },
+      "id": "project-data",
+      "name": "Project Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1900, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Project Data').first().json.chatId }}",
+        "text": "=🚀 Starting kickoff for *{{ $('Project Data').first().json.name }}*...\n\n📋 Step 1/3 — Analysing features and requirements...",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "status-starting",
+      "name": "Status: Starting",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2100, 200],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Project Data').first().json;\nconst agentDir = 'Project_Kickoff/agents';\nconst inputJson = JSON.stringify({ name: input.name, description: input.description, notes: input.notes });\nconst command = `cd /home/adam/n8n && { cat ${agentDir}/product_analyst.md; cat <<'AGENTEOF'\\n\\nInput: ${inputJson}\\nAGENTEOF\\n} | gemini -p \"\" --yolo`;\nreturn { command };"
+      },
+      "id": "prepare-analyst-cmd",
+      "name": "Prepare Analyst Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2300, 200]
+    },
+    {
+      "parameters": {
+        "command": "={{ $json.command }}"
+      },
+      "id": "agent-product-analyst",
+      "name": "Agent: Product Analyst",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [2500, 200],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "analyst-check",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-analyst",
+      "name": "If: Analyst",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [2700, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Project Data').first().json.chatId }}",
+        "text": "✅ Feature analysis complete.\n\n⚙️ Step 2/3 — Building tech architecture and design system...",
+        "additionalFields": {}
+      },
+      "id": "status-features-done",
+      "name": "Status: Features Done",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2900, 200],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Project Data').first().json;\nconst features = $('Agent: Product Analyst').first().json.stdout || '';\nconst agentDir = 'Project_Kickoff/agents';\nconst inputJson = JSON.stringify({ name: input.name, description: input.description, features });\nconst command = `cd /home/adam/n8n && { cat ${agentDir}/tech_architect.md; cat <<'AGENTEOF'\\n\\nInput: ${inputJson}\\nAGENTEOF\\n} | gemini -p \"\" --yolo`;\nreturn { command };"
+      },
+      "id": "prepare-tech-cmd",
+      "name": "Prepare Tech Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3100, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Project Data').first().json;\nconst features = $('Agent: Product Analyst').first().json.stdout || '';\nconst agentDir = 'Project_Kickoff/agents';\nconst inputJson = JSON.stringify({ name: input.name, features });\nconst command = `cd /home/adam/n8n && { cat ${agentDir}/design_director.md; cat <<'AGENTEOF'\\n\\nInput: ${inputJson}\\nAGENTEOF\\n} | gemini -p \"\" --yolo`;\nreturn { command };"
+      },
+      "id": "prepare-design-cmd",
+      "name": "Prepare Design Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3100, 300]
+    },
+    {
+      "parameters": {
+        "command": "={{ $json.command }}"
+      },
+      "id": "agent-tech-architect",
+      "name": "Agent: Tech Architect",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [3300, 100],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "={{ $json.command }}"
+      },
+      "id": "agent-design-director",
+      "name": "Agent: Design Director",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [3300, 300],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "tech-check",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-tech",
+      "name": "If: Tech",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [3500, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "design-check",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-design",
+      "name": "If: Design",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [3500, 300]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "merge-results",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [3700, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Project Data').first().json.chatId }}",
+        "text": "✅ Architecture and design ready.\n\n📝 Step 3/3 — Assembling project files...",
+        "additionalFields": {}
+      },
+      "id": "status-arch-done",
+      "name": "Status: Arch Done",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [3900, 200],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Project Data').first().json;\nconst features = $('Agent: Product Analyst').first().json.stdout || '';\nconst tech = $('Agent: Tech Architect').first().json.stdout || '';\nconst design = $('Agent: Design Director').first().json.stdout || '';\nconst agentDir = 'Project_Kickoff/agents';\nconst inputJson = JSON.stringify({ name: input.name, description: input.description, features, tech, design });\nconst command = `cd /home/adam/n8n && { cat ${agentDir}/context_assembler.md; cat <<'AGENTEOF'\\n\\nInput: ${inputJson}\\nAGENTEOF\\n} | gemini -p \"\" --yolo`;\nreturn { command };"
+      },
+      "id": "prepare-assembler-cmd",
+      "name": "Prepare Assembler Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4100, 200]
+    },
+    {
+      "parameters": {
+        "command": "={{ $json.command }}"
+      },
+      "id": "agent-context-assembler",
+      "name": "Agent: Context Assembler",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [4300, 200],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "assembler-check",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-assembler",
+      "name": "If: Assembler",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [4500, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.stdout || '';\nconst fileRegex = /## FILE \\d+: ([\\w.-]+)\\n([\\s\\S]*?)(?=\\n## FILE \\d+:|$)/g;\nlet match;\nconst results = [];\nwhile ((match = fileRegex.exec(input)) !== null) {\n  results.push({ fileName: match[1].trim(), content: match[2].trim() });\n}\nif (results.length === 0) {\n  return [{ fileName: 'kickoff_raw.md', content: input }];\n}\nreturn results;"
+      },
+      "id": "split-output",
+      "name": "Split Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4700, 200]
+    },
+    {
+      "parameters": {
+        "command": "={{ `PROJECT_DIR=\"/home/adam/projects/${$('Project Data').first().json.name.toLowerCase().replace(/\\\\s+/g, '-')}\"\\nmkdir -p \"$PROJECT_DIR\"\\ncat <<'FILEEOF' > \"$PROJECT_DIR/${$json.fileName}\"\\n${$json.content}\\nFILEEOF\\necho \"Wrote ${$json.fileName} to $PROJECT_DIR\"` }}"
+      },
+      "id": "write-files",
+      "name": "Write Files",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [4900, 200],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Project Data').first().json.chatId }}",
+        "text": "=📄 {{ $json.stdout }}",
+        "additionalFields": {}
+      },
+      "id": "status-file-written",
+      "name": "Status: File Written",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [5100, 200],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const vague = $('Process Message').first().json.vague;\nconst chatId = $('Process Message').first().json.chatId;\nconst agentDir = 'Project_Kickoff/agents';\nconst command = `cd /home/adam/n8n && { cat ${agentDir}/brainstorm.md; cat <<'AGENTEOF'\\n\\n${vague}\\nAGENTEOF\\n} | gemini -p \"\" --yolo`;\nreturn { command, chatId };"
+      },
+      "id": "prepare-brainstorm-cmd",
+      "name": "Prepare Brainstorm Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 400]
+    },
+    {
+      "parameters": {
+        "command": "={{ $json.command }}"
+      },
+      "id": "agent-brainstorm",
+      "name": "Agent: Brainstorm",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [1300, 400],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "brainstorm-check",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "if-brainstorm",
+      "name": "If: Brainstorm",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const stdout = $json.stdout || '';\nconst chatId = $('Prepare Brainstorm Command').first().json.chatId;\n\nlet data;\ntry {\n  const cleaned = stdout.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  data = JSON.parse(cleaned);\n} catch(e) {\n  return {\n    message: '❌ Could not expand on that idea. Please try /brainstorm again.',\n    newStateJson: null,\n    chatId\n  };\n}\n\nconst newStateJson = JSON.stringify({\n  stage: 'brainstorm_pending',\n  name: data.name,\n  description: data.description,\n  notes: data.notes || ''\n});\n\nconst message = `💡 *Here's what I'm thinking:*\\n\\n*${data.name}*\\n\\n${data.summary}\\n\\n_Stack: ${data.notes}_\\n\\n─────────────\\nReply /confirm to kick off this project, or /cancel to discard.`;\n\nreturn { message, newStateJson, chatId };"
+      },
+      "id": "format-brainstorm",
+      "name": "Format Brainstorm",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1700, 400]
+    },
+    {
+      "parameters": {
+        "command": "={{ `mkdir -p /home/adam/n8n/Project_Kickoff/state && cat <<'STATEEOF' > /home/adam/n8n/Project_Kickoff/state/${$json.chatId}.json\\n${$json.newStateJson}\\nSTATEEOF` }}"
+      },
+      "id": "save-brainstorm-state",
+      "name": "Save Brainstorm State",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [1900, 400],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Format Brainstorm').first().json.chatId }}",
+        "text": "={{ $('Format Brainstorm').first().json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-brainstorm-results",
+      "name": "Send Brainstorm Results",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2100, 400],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "={{ `rm -f /home/adam/n8n/Project_Kickoff/state/${$json.chatId}.json && echo 'cancelled'` }}"
+      },
+      "id": "clear-state",
+      "name": "Clear State",
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [1100, 550],
+      "credentials": {
+        "sshPassword": {
+          "id": "0EnwcxrRu8Fo75Hq",
+          "name": "SSH Password account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "Cancelled. Send /kickoff or /brainstorm when you're ready.",
+        "additionalFields": {}
+      },
+      "id": "send-cancelled",
+      "name": "Send Cancelled",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1300, 550],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Process Message').first().json.chatId }}",
+        "text": "={{ $('Process Message').first().json.helpMsg || '👋 *Project Kickoff Bot*\\n\\n`/kickoff [description]` — Start a project. Just describe what you want to build and I will parse out the details.\\n\\nExample: `/kickoff TaskMaster — a todo app with user auth, tags, and due dates`\\n\\n`/brainstorm [vague idea]` — Give me a rough concept and I will flesh it out, then ask for your confirmation before kicking off.\\n\\nExample: `/brainstorm something to help me track my reading habits`\\n\\n`/cancel` — Cancel the current flow.' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "send-help",
+      "name": "Send Help",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1100, 680],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIALS_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message": {
+      "main": [
+        [
+          {
+            "node": "Read State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read State": {
+      "main": [
+        [
+          {
+            "node": "Process Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Message": {
+      "main": [
+        [
+          {
+            "node": "Route Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Action": {
+      "main": [
+        [
+          {
+            "node": "Prepare Parser Command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Brainstorm Command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Project Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clear State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Help",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Parser Command": {
+      "main": [
+        [
+          {
+            "node": "Agent: Input Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: Input Parser": {
+      "main": [
+        [
+          {
+            "node": "If: Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Parser": {
+      "main": [
+        [
+          {
+            "node": "Parse Parser Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent: Input Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Parser Output": {
+      "main": [
+        [
+          {
+            "node": "Project Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Project Data": {
+      "main": [
+        [
+          {
+            "node": "Status: Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status: Starting": {
+      "main": [
+        [
+          {
+            "node": "Prepare Analyst Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Analyst Command": {
+      "main": [
+        [
+          {
+            "node": "Agent: Product Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: Product Analyst": {
+      "main": [
+        [
+          {
+            "node": "If: Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Analyst": {
+      "main": [
+        [
+          {
+            "node": "Status: Features Done",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent: Product Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status: Features Done": {
+      "main": [
+        [
+          {
+            "node": "Prepare Tech Command",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Design Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Tech Command": {
+      "main": [
+        [
+          {
+            "node": "Agent: Tech Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Design Command": {
+      "main": [
+        [
+          {
+            "node": "Agent: Design Director",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: Tech Architect": {
+      "main": [
+        [
+          {
+            "node": "If: Tech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: Design Director": {
+      "main": [
+        [
+          {
+            "node": "If: Design",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Tech": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent: Tech Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Design": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Agent: Design Director",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Status: Arch Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status: Arch Done": {
+      "main": [
+        [
+          {
+            "node": "Prepare Assembler Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Assembler Command": {
+      "main": [
+        [
+          {
+            "node": "Agent: Context Assembler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: Context Assembler": {
+      "main": [
+        [
+          {
+            "node": "If: Assembler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Assembler": {
+      "main": [
+        [
+          {
+            "node": "Split Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent: Context Assembler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Output": {
+      "main": [
+        [
+          {
+            "node": "Write Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Files": {
+      "main": [
+        [
+          {
+            "node": "Status: File Written",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Brainstorm Command": {
+      "main": [
+        [
+          {
+            "node": "Agent: Brainstorm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: Brainstorm": {
+      "main": [
+        [
+          {
+            "node": "If: Brainstorm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If: Brainstorm": {
+      "main": [
+        [
+          {
+            "node": "Format Brainstorm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agent: Brainstorm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Brainstorm": {
+      "main": [
+        [
+          {
+            "node": "Save Brainstorm State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Brainstorm State": {
+      "main": [
+        [
+          {
+            "node": "Send Brainstorm Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear State": {
+      "main": [
+        [
+          {
+            "node": "Send Cancelled",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
