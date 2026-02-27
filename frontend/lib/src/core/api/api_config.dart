@@ -12,11 +12,8 @@ class ApiConfig {
   static String opportunityStatsEndpoint(String ticker) => '$baseUrl/briefing/opportunity-stats/$ticker';
   
   // N8N Webhook for configuration updates
-  // Using the recommended HTTPS routing URL via Cloudflare
-  static const String configWebhookEndpoint = 'https://n8n.zborovsky.cloud/webhook/trigger-briefing';
-  
-  // Project Kickoff Webhook URL
-  static const String kickoffWebhookEndpoint = 'https://n8n.zborovsky.cloud/webhook/project-kickoff-telegram';
+  // Adjusting to common N8N webhook pattern based on backend domain
+  static const String configWebhookEndpoint = '$baseUrl/briefing/config';
   
   // You can add more endpoints here as the backend grows
   // static const String stockEndpoint = '$baseUrl/stocks';

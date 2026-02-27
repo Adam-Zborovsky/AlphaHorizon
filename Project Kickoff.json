@@ -1116,8 +1116,7 @@
     "executionOrder": "v1"
   },
   "meta": {
-    "templateCredsSetupCompleted": false,
-    "webhook_url": "https://n8n.zborovsky.cloud/webhook/project-kickoff-telegram"
+    "templateCredsSetupCompleted": false
   },
   "tags": []
 }
