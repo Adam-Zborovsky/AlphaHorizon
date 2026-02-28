@@ -11,7 +11,7 @@ class ManageTopicsScreen extends ConsumerStatefulWidget {
   static String formatTopic(String key) {
     if (key == 'news_intel') return 'Strategic News Intel';
     if (key == 'market_analyst') return 'Market Analysis';
-    if (key == 'opportunity_scout') return 'Alpha Opportunities';
+    if (key == 'opportunity_scout') return 'Opportunities';
     
     return key.replaceAll('_', ' ').split(' ').map((word) {
       if (word.isEmpty) return '';

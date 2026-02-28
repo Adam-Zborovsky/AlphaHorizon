@@ -363,7 +363,7 @@ class _NewsCard extends ConsumerWidget {
                     item.ticker!,
                     style: TextStyle(color: AppTheme.goldAmber.withOpacity(0.7), fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1),
                   ),
-                  if (categoryName == 'Alpha Opportunities') ...[
+                  if (categoryName == 'Opportunities') ...[
                     const SizedBox(width: 8),
                     _StreakBadge(ticker: item.ticker!),
                   ],

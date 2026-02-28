@@ -351,7 +351,7 @@ class _IntelCard extends StatelessWidget {
   static IconData _categoryIcon(String name) {
     final n = name.toLowerCase();
     if (n.contains('market') || n.contains('analysis')) return Icons.candlestick_chart_rounded;
-    if (n.contains('opportunit') || n.contains('alpha') || n.contains('divergent')) return Icons.bolt_rounded;
+    if (n.contains('opportunit') || n.contains('divergent')) return Icons.bolt_rounded;
     if (n.contains('defense') || n.contains('military')) return Icons.shield_outlined;
     if (n.contains('ai') || n.contains('cyber') || n.contains('tech')) return Icons.memory;
     if (n.contains('geo') || n.contains('diplom')) return Icons.public;

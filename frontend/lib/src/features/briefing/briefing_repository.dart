@@ -37,7 +37,7 @@ class BriefingRepository extends _$BriefingRepository {
   String _formatCategory(String key) {
     if (key == 'news_intel') return 'Strategic News Intel';
     if (key == 'market_analyst' || key == 'market_analysis') return 'Market Analysis';
-    if (key == 'opportunity_scout' || key == 'opportunities' || key == 'high_signal_divergent') return 'Alpha Opportunities';
+    if (key == 'opportunity_scout' || key == 'opportunities' || key == 'high_signal_divergent') return 'Opportunities';
     
     return key.replaceAll('_', ' ').split(' ').map((word) {
       if (word.isEmpty) return '';
@@ -287,7 +287,7 @@ class BriefingRepository extends _$BriefingRepository {
             }
           }
 
-          // 3. Handle Alpha Opportunities
+          // 3. Handle Opportunities
           final opportunityContainers = ['opportunities', 'opportunity_scout'];
           for (final containerKey in opportunityContainers) {
             if (decodedContent.containsKey(containerKey)) {
@@ -312,7 +312,7 @@ class BriefingRepository extends _$BriefingRepository {
                     }
                   }
                   final firstExplanation = items.where((i) => i.explanation != null && i.explanation!.isNotEmpty).firstOrNull?.explanation;
-                  categoriesMap['Alpha Opportunities'] = CategoryData(
+                  categoriesMap['Opportunities'] = CategoryData(
                     sentimentScore: count > 0 ? totalSentiment / count : 0.0,
                     summary: firstExplanation ?? '${items.length} opportunities identified.',
                     items: items,

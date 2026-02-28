@@ -10,8 +10,8 @@ import 'package:horizon/src/features/briefing/briefing_model.dart';
 import 'package:horizon/src/features/onboarding/onboarding_wrapper.dart';
 import 'package:horizon/src/features/onboarding/tutorial_keys.dart';
 
-class AlphaScannerScreen extends ConsumerWidget {
-  const AlphaScannerScreen({super.key});
+class ScannerScreen extends ConsumerWidget {
+  const ScannerScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,8 +60,7 @@ class AlphaScannerScreen extends ConsumerWidget {
                           final oppEntry = briefing.data.entries.where(
                             (e) =>
                                 e.key.toLowerCase().contains('opportunit') ||
-                                e.key.toLowerCase().contains('alpha') ||
-                                e.key.toLowerCase().contains('divergent'),
+                                                e.key.toLowerCase().contains('divergent'),
                           );
                           final opportunities = oppEntry.isNotEmpty
                               ? oppEntry.first.value.items
@@ -179,7 +178,7 @@ class _ScannerHeader extends StatelessWidget {
       pinned: true,
       centerTitle: false,
       title: Text(
-        'Alpha Scanner',
+        'Scanner',
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               letterSpacing: -0.5,

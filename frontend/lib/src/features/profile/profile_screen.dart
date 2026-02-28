@@ -17,7 +17,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    final username = authState.value?.username ?? 'Alpha Operator';
+    final username = authState.value?.username ?? 'Operator';
 
     return OnboardingWrapper(
       step: OnboardingStep.profile,

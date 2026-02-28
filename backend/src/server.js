@@ -12,7 +12,7 @@ const startServer = async () => {
 
   // Listen for requests
   app.listen(env.PORT, () => {
-    console.log(`✅ Alpha-Horizon Backend is running on port: ${env.PORT}`);
+    console.log(`✅ Horizon Backend is running on port: ${env.PORT}`);
     console.log(`🌍 Environment: ${env.NODE_ENV}`);
     console.log(`🔗 API Prefix: ${env.API_PREFIX}`);
   });

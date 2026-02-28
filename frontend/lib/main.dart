@@ -5,7 +5,7 @@ import 'src/core/theme/app_theme.dart';
 import 'src/features/dashboard/dashboard_screen.dart';
 import 'src/features/nexus/market_nexus_screen.dart';
 import 'src/features/vault/intelligence_vault_screen.dart';
-import 'src/features/scanner/alpha_scanner_screen.dart';
+import 'src/features/scanner/scanner_screen.dart';
 import 'src/features/stock/stock_detail_screen.dart';
 import 'src/features/nexus/management/manage_watchlist_screen.dart';
 import 'src/features/vault/management/manage_topics_screen.dart';
@@ -19,7 +19,7 @@ import 'src/features/onboarding/tutorial_keys.dart';
 void main() {
   runApp(
     const ProviderScope(
-      child: AlphaHorizonApp(),
+      child: HorizonApp(),
     ),
   );
 }
@@ -91,7 +91,7 @@ final _routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/scanner',
-            builder: (context, state) => AlphaScannerScreen(),
+            builder: (context, state) => ScannerScreen(),
           ),
         ],
       ),
@@ -127,8 +127,8 @@ final _routerProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class AlphaHorizonApp extends ConsumerWidget {
-  const AlphaHorizonApp({super.key});
+class HorizonApp extends ConsumerWidget {
+  const HorizonApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -154,7 +154,7 @@ class AlphaHorizonApp extends ConsumerWidget {
     final router = ref.watch(_routerProvider);
 
     return MaterialApp.router(
-      title: 'Alpha Horizon',
+      title: 'Horizon',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       routerConfig: router,

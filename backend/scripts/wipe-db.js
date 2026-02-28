@@ -3,7 +3,7 @@ const env = require('../src/config/env');
 
 async function wipeDatabase() {
   try {
-    console.log('--- ALPHA HORIZON DATA WIPE INITIATED ---');
+    console.log('--- HORIZON DATA WIPE INITIATED ---');
     console.log(`Connecting to: ${env.MONGODB_URI}`);
     
     await mongoose.connect(env.MONGODB_URI);

@@ -106,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   
                   // Welcome Text
                   Text(
-                    'ALPHA HORIZON',
+                    'HORIZON',
                     style: GoogleFonts.orbitron(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -232,7 +232,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   
                   const SizedBox(height: 48),
                   Text(
-                    'v1.0.0 | ALPHA HORIZON TERMINAL',
+                    'v1.0.0 | HORIZON TERMINAL',
                     style: GoogleFonts.spaceMono(
                       fontSize: 10,
                       color: Colors.white.withOpacity(0.2),
