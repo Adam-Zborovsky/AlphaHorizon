@@ -1,4 +1,13 @@
 services:
+  alpha-horizon-frontend:
+    image: nginx:alpine
+    container_name: alpha-horizon-frontend
+    restart: unless-stopped
+    volumes:
+      - ./frontend/build/web:/usr/share/nginx/html:ro
+    networks:
+      - adam  
+
   alpha-horizon-backend:
     build: ./backend
     container_name: alpha-horizon-backend

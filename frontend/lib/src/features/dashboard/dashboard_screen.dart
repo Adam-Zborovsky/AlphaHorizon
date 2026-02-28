@@ -85,7 +85,11 @@ class DashboardScreen extends ConsumerWidget {
                 loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
                 error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Stock error: $err', style: const TextStyle(color: Colors.white24)))),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 150)),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 100 + MediaQuery.of(context).padding.bottom,
+                ),
+              ),
             ],
           ),
         ),
