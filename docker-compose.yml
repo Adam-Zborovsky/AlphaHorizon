@@ -1,36 +1,36 @@
 services:
-  alpha-horizon-backend:
+  horizon-backend:
     build: ./backend
-    container_name: alpha-horizon-backend
+    container_name: horizon-backend
     restart: unless-stopped
     env_file:
       - .env
     depends_on:
       - mongodb
     networks:
-      - alpha-horizon-network
+      - horizon-network
 
-  alpha-horizon-frontend:
+  horizon-frontend:
     build: ./frontend
-    container_name: alpha-horizon-frontend
+    container_name: horizon-frontend
     restart: unless-stopped
     depends_on:
-      - alpha-horizon-backend
+      - horizon-backend
     networks:
-      - alpha-horizon-network
+      - horizon-network
       - adam
 
   mongodb:
     image: mongo:latest
-    container_name: alpha-horizon-db
+    container_name: horizon-db
     restart: unless-stopped
     volumes:
       - mongodb_data:/data/db
     networks:
-      - alpha-horizon-network
+      - horizon-network
 
 networks:
-  alpha-horizon-network:
+  horizon-network:
     driver: bridge
   adam:
     external: true
