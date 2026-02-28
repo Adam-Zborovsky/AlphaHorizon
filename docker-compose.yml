@@ -3,6 +3,8 @@ services:
     build: ./backend
     container_name: horizon-backend
     restart: unless-stopped
+    ports:
+      - "8181:8181"
     env_file:
       - .env
     depends_on:

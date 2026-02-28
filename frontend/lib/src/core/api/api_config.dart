@@ -1,5 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 class ApiConfig {
-  static const String baseUrl = '/api/v1';
+  // Use absolute URL for mobile, relative for web
+  // For local mobile development, you can use 'http://10.0.2.2:8181' (Android) 
+  // or your machine's local IP address.
+  static const String _host = kIsWeb ? '' : 'https://horizon.adamzborovsky.com';
+  static const String baseUrl = '$_host/api/v1';
+  
   static const String authEndpoint = '$baseUrl/auth';
   static const String loginEndpoint = '$authEndpoint/login';
   static const String registerEndpoint = '$authEndpoint/register';
@@ -12,9 +19,5 @@ class ApiConfig {
   static String opportunityStatsEndpoint(String ticker) => '$baseUrl/briefing/opportunity-stats/$ticker';
   
   // N8N Webhook for configuration updates
-  // Adjusting to common N8N webhook pattern based on backend domain
   static const String configWebhookEndpoint = '$baseUrl/briefing/config';
-  
-  // You can add more endpoints here as the backend grows
-  // static const String stockEndpoint = '$baseUrl/stocks';
 }
